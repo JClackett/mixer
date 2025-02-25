@@ -1,7 +1,8 @@
 "use client"
 
 import { Slider } from "@/components/ui/slider"
-import { AudioLinesIcon, BirdIcon, DropletsIcon, Play, WavesIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { AudioLinesIcon, BirdIcon, DropletsIcon, Play, VolumeOffIcon, WavesIcon } from "lucide-react"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 
@@ -40,6 +41,7 @@ export default function AudioMixer() {
   const [muted, setMuted] = useState(new Array(tracks.length).fill(false))
   const [eq, setEq] = useState(tracks.map(() => ({ HIGH: 50, MID: 50, LOW: 50 })))
   const [masterVolume, setMasterVolume] = useState(50)
+  const [waveformHeights, setWaveformHeights] = useState(new Array(8).fill(3))
   const draggingKnobRef = useRef<{ track: number; band: string } | null>(null)
   const draggingMasterRef = useRef(false)
   const audioRefs = useRef<(HTMLAudioElement | null)[]>([])
@@ -162,6 +164,18 @@ export default function AudioMixer() {
       }
     }
   }, [eq])
+
+  // Add waveform animation effect
+  useEffect(() => {
+    if (!isPlaying) return
+
+    const animateWaveform = () => {
+      setWaveformHeights((prev) => prev.map(() => Math.max(2, Math.min(8, Math.floor(Math.random() * 8)))))
+    }
+
+    const interval = setInterval(animateWaveform, 150)
+    return () => clearInterval(interval)
+  }, [isPlaying])
 
   const handleVolumeChange = (value: number[], index: number) => {
     const newVolume = value[0]
@@ -312,14 +326,26 @@ export default function AudioMixer() {
             shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)]
             before:content-[''] before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)]
             after:content-[''] after:absolute after:-inset-[2px] after:-bottom-[6px] after:rounded-xl after:border after:border-neutral-400 after:-z-10 after:bg-neutral-300
-            transform rotateX(10deg) rotateY(10deg) scale-[0.98]"
+            transform rotateX(10deg) rotateY(10deg) scale-[0.98] before:-z-10"
           >
             <div className="absolute top-4 left-4 text-neutral-600 tracking-wider text-sm font-medium">TX-6</div>
 
             {/* Digital Display */}
-            <div className="absolute top-4 right-4 bg-black text-neutral-100 px-3 py-1 rounded-sm text-[10px] font-mono flex items-center gap-2 shadow-inner">
+            <div className="absolute top-4 right-4 bg-black pl-2 text-neutral-100 flex-row justify-start h-[24px] rounded-sm text-[10px] font-mono flex items-center shadow-inner">
               <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-              {isPlaying ? "PLAYING" : "STOPPED"}
+              <div className="flex items-center justify-center w-[60px]">
+                {isPlaying ? (
+                  <div className="flex items-center justify-center">
+                    <div className="flex items-end h-2 gap-[1px]">
+                      {waveformHeights.map((height, i) => (
+                        <div key={i} className="w-[2px] bg-orange-500" style={{ height: `${height}px` }} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="w-full text-center">STOPPED</span>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-6 mt-12">
@@ -349,7 +375,7 @@ export default function AudioMixer() {
                   ))}
 
                   {/* Fader Track */}
-                  <div className="h-48 w-4 rounded-full bg-black relative mt-2 shadow-inner shadow-[inset_0_0_4px_rgba(0,0,0,0.5)] overflow-hidden border border-neutral-700">
+                  <div className="h-48 w-4 rounded-full bg-black relative mt-2 shadow-[inset_0_0_4px_rgba(0,0,0,0.5)] overflow-hidden border border-neutral-700">
                     <Slider
                       value={[volumes[index]]}
                       onValueChange={(value) => handleVolumeChange(value, index)}
@@ -375,11 +401,12 @@ export default function AudioMixer() {
                   <button
                     type="button"
                     onClick={() => toggleMute(index)}
-                    className={`mt-2 w-8 h-6 rounded-sm flex items-center justify-center transition-colors ${
-                      muted[index] ? "bg-orange-500 text-white" : "bg-neutral-300 text-neutral-600 hover:bg-neutral-400"
-                    }`}
+                    className={cn(
+                      "mt-2 min-w-6 min-h-6 shadow-sm shrink-0 rounded-full flex items-center justify-center transition-colors",
+                      muted[index] ? "bg-orange-500 text-white shadow-sm" : "border border-neutral-400/70",
+                    )}
                   >
-                    <span className="text-[8px] font-medium">MUTE</span>
+                    <VolumeOffIcon size={12} />
                   </button>
                 </div>
               ))}
