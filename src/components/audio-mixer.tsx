@@ -4,7 +4,7 @@ import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
 import { AudioLinesIcon, BirdIcon, DropletsIcon, Play, VolumeOffIcon, WavesIcon } from "lucide-react"
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { memo, useEffect, useRef, useState } from "react"
 
 const tracks = [
   {
@@ -41,7 +41,6 @@ export function AudioMixer() {
   const [muted, setMuted] = useState(new Array(tracks.length).fill(false))
   const [eq, setEq] = useState(tracks.map(() => ({ HIGH: 50, MID: 50, LOW: 50 })))
   const [masterVolume, setMasterVolume] = useState(50)
-  const [waveformHeights, setWaveformHeights] = useState(new Array(8).fill(3))
   const draggingKnobRef = useRef<{ track: number; band: string } | null>(null)
   const draggingMasterRef = useRef(false)
   const audioRefs = useRef<(HTMLAudioElement | null)[]>([])
@@ -164,18 +163,6 @@ export function AudioMixer() {
       }
     }
   }, [eq])
-
-  // Add waveform animation effect
-  useEffect(() => {
-    if (!isPlaying) return
-
-    const animateWaveform = () => {
-      setWaveformHeights((prev) => prev.map(() => Math.max(2, Math.min(8, Math.floor(Math.random() * 8)))))
-    }
-
-    const interval = setInterval(animateWaveform, 150)
-    return () => clearInterval(interval)
-  }, [isPlaying])
 
   const handleVolumeChange = (value: number[], index: number) => {
     const newVolume = value[0]
@@ -334,17 +321,8 @@ export function AudioMixer() {
             <div className="absolute top-4 right-4 bg-black pl-2 text-neutral-100 flex-row justify-start h-[24px] rounded-sm text-[10px] font-mono flex items-center shadow-inner">
               <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
               <div className="flex items-center justify-center w-[60px]">
-                {isPlaying ? (
-                  <div className="flex items-center justify-center">
-                    <div className="flex items-end h-2 gap-[1px]">
-                      {waveformHeights.map((height, i) => (
-                        <div key={i} className="w-[2px] bg-orange-500" style={{ height: `${height}px` }} />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <span className="w-full text-center">STOPPED</span>
-                )}
+                {/* Use the new Waveform component */}
+                <Waveform isPlaying={isPlaying} />
               </div>
             </div>
 
@@ -454,3 +432,32 @@ export function AudioMixer() {
     </div>
   )
 }
+
+// Waveform component to isolate animation re-renders
+const Waveform = memo(function _Waveform({ isPlaying }: { isPlaying: boolean }) {
+  const [waveformHeights, setWaveformHeights] = useState(new Array(8).fill(3))
+
+  // Isolated waveform animation effect
+  useEffect(() => {
+    if (!isPlaying) return
+    const animateWaveform = () => {
+      setWaveformHeights((prev) => prev.map(() => Math.max(2, Math.min(8, Math.floor(Math.random() * 8)))))
+    }
+    const interval = setInterval(animateWaveform, 150)
+    return () => clearInterval(interval)
+  }, [isPlaying])
+
+  if (!isPlaying) {
+    return <span className="w-full text-center">STOPPED</span>
+  }
+
+  return (
+    <div className="flex items-center justify-center">
+      <div className="flex items-end h-2 gap-[1px]">
+        {waveformHeights.map((height, i) => (
+          <div key={i} className="w-[2px] bg-orange-500" style={{ height: `${height}px` }} />
+        ))}
+      </div>
+    </div>
+  )
+})
