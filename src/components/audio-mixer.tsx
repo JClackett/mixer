@@ -418,13 +418,13 @@ export function AudioMixer() {
                 onPointerDown={startMasterKnobDrag}
               >
                 <div
-                  className="absolute inset-0 rounded-full"
+                  className="absolute z-10 inset-0 rounded-full"
                   style={{
                     transform: `rotate(${masterRotationRef.current}deg)`,
                     touchAction: "none",
                   }}
                 >
-                  <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
+                  <div className=" absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
                 </div>
               </div>
               {/* Volume percentage indicator */}
