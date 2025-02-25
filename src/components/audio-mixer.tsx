@@ -35,16 +35,28 @@ export default function AudioMixer() {
   const [volumes, setVolumes] = useState(new Array(tracks.length).fill(50))
   const [muted, setMuted] = useState(new Array(tracks.length).fill(false))
   const [eq, setEq] = useState(tracks.map(() => ({ HIGH: 50, MID: 50, LOW: 50 })))
-  const [draggingKnob, setDraggingKnob] = useState<{ track: number; band: string } | null>(null)
+  const [masterVolume, setMasterVolume] = useState(50)
+  const draggingKnobRef = useRef<{ track: number; band: string } | null>(null)
+  const draggingMasterRef = useRef(false)
   const audioRefs = useRef<(HTMLAudioElement | null)[]>([])
   const audioContextRef = useRef<AudioContext | null>(null)
   const eqNodesRef = useRef<any[]>([])
+  const masterGainRef = useRef<GainNode | null>(null)
+  const initialVolumeRef = useRef(75)
   const startYRef = useRef<number>(0)
   const startValueRef = useRef<number>(0)
+  const masterRotationRef = useRef((masterVolume - 50) * 3.6)
+  const eqRotationRefs = useRef<number[][][]>([])
 
   useEffect(() => {
     const initAudio = async () => {
       audioContextRef.current = new AudioContext()
+
+      // Create master gain node
+      masterGainRef.current = audioContextRef.current.createGain()
+      masterGainRef.current.gain.value = initialVolumeRef.current / 100
+      masterGainRef.current.connect(audioContextRef.current.destination)
+
       audioRefs.current = tracks.map(() => new Audio())
       eqNodesRef.current = tracks.map(() => ({
         source: null,
@@ -80,8 +92,8 @@ export default function AudioMixer() {
         lowEQ.type = "lowshelf"
         lowEQ.frequency.value = 400
 
-        // Connect nodes
-        source.connect(highEQ).connect(midEQ).connect(lowEQ).connect(gainNode).connect(audioContextRef.current.destination)
+        // Connect nodes to master gain instead of directly to destination
+        source.connect(highEQ).connect(midEQ).connect(lowEQ).connect(gainNode).connect(masterGainRef.current)
 
         eqNodesRef.current[i] = {
           source,
@@ -108,6 +120,39 @@ export default function AudioMixer() {
     }
   }, [])
 
+  // Update master volume whenever it changes
+  useEffect(() => {
+    if (masterGainRef.current) {
+      masterGainRef.current.gain.value = masterVolume / 100
+    }
+  }, [masterVolume])
+
+  // Update rotation refs when volume or eq changes
+  useEffect(() => {
+    masterRotationRef.current = (masterVolume - 50) * 3.6
+  }, [masterVolume])
+
+  useEffect(() => {
+    // Initialize eqRotationRefs
+    if (eqRotationRefs.current.length === 0) {
+      eqRotationRefs.current = tracks.map(() => eqBands.map(() => [(50 - 50) * 3.6]))
+    }
+  }, [])
+
+  useEffect(() => {
+    for (let i = 0; i < tracks.length; i++) {
+      for (let j = 0; j < eqBands.length; j++) {
+        const band = eqBands[j]
+        const value = eq[i][band as keyof (typeof eq)[0]]
+        if (eqRotationRefs.current[i]?.[j]) {
+          // For 50% at top, we rotate 0 degrees at 50 value
+          // Value < 50 rotates counter-clockwise, value > 50 rotates clockwise
+          eqRotationRefs.current[i][j][0] = (value - 50) * 2.7
+        }
+      }
+    }
+  }, [eq])
+
   const handleVolumeChange = (value: number[], index: number) => {
     const newVolume = value[0]
     setVolumes((prev) => {
@@ -121,22 +166,66 @@ export default function AudioMixer() {
     }
   }
 
+  const handleMasterVolumeChange = (value: number[]) => {
+    const newVolume = Math.round(value[0])
+    setMasterVolume(newVolume)
+  }
+
   const startKnobDrag = (e: React.PointerEvent, trackIndex: number, band: string) => {
-    setDraggingKnob({ track: trackIndex, band })
+    e.preventDefault()
+    const bandIndex = eqBands.indexOf(band)
+    draggingKnobRef.current = { track: trackIndex, band }
     startYRef.current = e.clientY
     startValueRef.current = eq[trackIndex][band as keyof (typeof eq)[0]]
 
     const handlePointerMove = (e: PointerEvent) => {
-      if (draggingKnob) {
+      e.preventDefault()
+      if (draggingKnobRef.current) {
         const deltaY = startYRef.current - e.clientY
         const newValue = Math.max(0, Math.min(100, startValueRef.current + deltaY / 2))
 
+        // Update rotation directly during drag for smooth visuals
+        if (eqRotationRefs.current[trackIndex]?.[bandIndex]) {
+          eqRotationRefs.current[trackIndex][bandIndex][0] = (newValue - 50) * 2.7
+        }
+
+        // Force re-render to update rotation
         handleEQChange(trackIndex, band, newValue)
       }
     }
 
     const handlePointerUp = () => {
-      setDraggingKnob(null)
+      draggingKnobRef.current = null
+      document.removeEventListener("pointermove", handlePointerMove)
+      document.removeEventListener("pointerup", handlePointerUp)
+    }
+
+    document.addEventListener("pointermove", handlePointerMove)
+    document.addEventListener("pointerup", handlePointerUp)
+  }
+
+  const startMasterKnobDrag = (e: React.PointerEvent) => {
+    e.preventDefault()
+    draggingMasterRef.current = true
+    startYRef.current = e.clientY
+    startValueRef.current = masterVolume
+
+    const handlePointerMove = (e: PointerEvent) => {
+      e.preventDefault()
+      if (draggingMasterRef.current) {
+        const deltaY = startYRef.current - e.clientY
+        const newValue = Math.max(0, Math.min(100, startValueRef.current + deltaY / 2))
+
+        // Update rotation directly during drag
+        masterRotationRef.current = (Math.round(newValue) - 50) * 3.6
+
+        // Update state (this will also trigger the useEffect to update audio)
+        handleMasterVolumeChange([newValue])
+      }
+    }
+
+    const handlePointerUp = () => {
+      draggingMasterRef.current = false
       document.removeEventListener("pointermove", handlePointerMove)
       document.removeEventListener("pointerup", handlePointerUp)
     }
@@ -218,21 +307,19 @@ export default function AudioMixer() {
                 <div
                   className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-2 border-neutral-100 relative shadow-md cursor-pointer"
                   style={{
-                    transform: `rotate(${((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 3.6}deg)`,
+                    transform: `rotate(${eqRotationRefs.current[index]?.[eqBands.indexOf(band)]?.[0] || ((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 2.7}deg)`,
                     touchAction: "none",
                   }}
                   onPointerDown={(e) => startKnobDrag(e, index, band)}
                 >
-                  <div className="absolute -right-1 top-1/2 w-1 h-1 bg-black rounded-full transform -translate-y-1/2" />
+                  {/* Position indicator dot at the top */}
+                  <div className="absolute top-0 left-1/2 w-1 h-1 bg-black rounded-full transform -translate-x-1/2" />
                 </div>
-                <span className="absolute -left-8 top-1/2 -translate-y-1/2 text-[8px] text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {band}
-                </span>
               </div>
             ))}
 
             {/* Fader Track */}
-            <div className="h-48 w-8 bg-black rounded-sm relative mt-4 shadow-inner">
+            <div className="h-48 w-4 rounded-full bg-black relative mt-2 shadow-inner">
               <Slider
                 value={[volumes[index]]}
                 onValueChange={(value) => handleVolumeChange(value, index)}
@@ -240,7 +327,7 @@ export default function AudioMixer() {
                 min={0}
                 max={100}
                 step={1}
-                className="h-full absolute inset-0"
+                className="h-full absolute inset-0 [&_[role=slider]]:shadow-md"
               />
 
               {/* Dotted indicators */}
@@ -262,13 +349,13 @@ export default function AudioMixer() {
                 muted[index] ? "bg-orange-500 text-white" : "bg-neutral-300 text-neutral-600 hover:bg-neutral-400"
               }`}
             >
-              <span className="text-[10px] font-medium">MUTE</span>
+              <span className="text-[8px] font-medium">MUTE</span>
             </button>
           </div>
         ))}
 
-        {/* Play Button */}
-        <div>
+        {/* Play Button and Master Volume */}
+        <div className="flex flex-col items-center gap-4">
           <button
             type="button"
             onClick={togglePlayback}
@@ -276,6 +363,24 @@ export default function AudioMixer() {
           >
             {isPlaying ? <div className="w-4 h-4 bg-orange-500" /> : <Play className="w-5 h-5 ml-0.5 fill-black" />}
           </button>
+
+          {/* Master Volume Control */}
+          <div className="flex flex-col items-center">
+            <div
+              className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 relative shadow-md cursor-pointer"
+              style={{
+                transform: `rotate(${masterRotationRef.current}deg)`,
+                touchAction: "none",
+              }}
+              onPointerDown={startMasterKnobDrag}
+            >
+              <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
+            </div>
+            {/* Volume percentage indicator */}
+            <div className="mt-1 text-[10px] text-neutral-600 font-mono bg-neutral-200 px-2 py-0.5 rounded-sm w-12 text-center">
+              {masterVolume}%
+            </div>
+          </div>
         </div>
       </div>
     </div>
