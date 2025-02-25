@@ -1,8 +1,8 @@
-import type { Metadata } from "next"
-import "./globals.css"
 import { ReactScan } from "@/components/react-scan"
-
+import { Analytics } from "@vercel/analytics/next"
+import type { Metadata } from "next"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
+import "./globals.css"
 
 export const metadata: Metadata = {
   title: "Mixer - J3-C7",
@@ -20,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <NextThemesProvider defaultTheme="system" attribute="class">
           {children}
         </NextThemesProvider>
+        <Analytics />
       </body>
     </html>
   )
