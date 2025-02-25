@@ -10,21 +10,25 @@ const tracks = [
     url: "/birds.wav",
     label: "BIRDS",
     icon: BirdIcon,
+    gainBoost: 0.7, // Default gain multiplier
   },
   {
     url: "/waves.wav",
     label: "WAVES",
     icon: WavesIcon,
+    gainBoost: 0.4, // Slightly boost waves
   },
   {
     url: "/rain.wav",
     label: "RAIN",
     icon: DropletsIcon,
+    gainBoost: 3, // Significantly boost rain which was quiet
   },
   {
     url: "/noise.wav",
     label: "NOISE",
     icon: AudioLinesIcon,
+    gainBoost: 1.0, // Default gain multiplier
   },
 ]
 
@@ -43,6 +47,7 @@ export default function AudioMixer() {
   const eqNodesRef = useRef<any[]>([])
   const masterGainRef = useRef<GainNode | null>(null)
   const initialVolumeRef = useRef(75)
+  const initialTrackVolumesRef = useRef(new Array(tracks.length).fill(50))
   const startYRef = useRef<number>(0)
   const startValueRef = useRef<number>(0)
   const masterRotationRef = useRef((masterVolume - 50) * 3.6)
@@ -92,6 +97,10 @@ export default function AudioMixer() {
         lowEQ.type = "lowshelf"
         lowEQ.frequency.value = 400
 
+        // Apply the gain boost to normalize volume differences between tracks
+        // Using initial volumes from ref to avoid dependency issues
+        gainNode.gain.value = (initialTrackVolumesRef.current[i] / 100) * tracks[i].gainBoost
+
         // Connect nodes to master gain instead of directly to destination
         source.connect(highEQ).connect(midEQ).connect(lowEQ).connect(gainNode).connect(masterGainRef.current)
 
@@ -118,7 +127,8 @@ export default function AudioMixer() {
         audioContextRef.current.close()
       }
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // We only want to run this once on mount
 
   // Update master volume whenever it changes
   useEffect(() => {
@@ -162,7 +172,8 @@ export default function AudioMixer() {
     })
 
     if (eqNodesRef.current[index]?.gain) {
-      eqNodesRef.current[index].gain.gain.value = muted[index] ? 0 : newVolume / 100
+      // Apply volume with the track's gain boost factor
+      eqNodesRef.current[index].gain.gain.value = muted[index] ? 0 : (newVolume / 100) * tracks[index].gainBoost
     }
   }
 
@@ -289,96 +300,117 @@ export default function AudioMixer() {
   }
 
   return (
-    <div className="bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_0_1px_rgba(255,255,255,0.5)] relative">
-      <div className="absolute top-4 left-4 text-neutral-600 tracking-wider text-sm font-medium">TX-6</div>
+    <div className="relative py-8">
+      {/* Added outer container with perspective and 3D effects */}
+      <div className="w-full perspective-[1500px] transform-gpu">
+        {/* Adding drop shadow container */}
+        <div className="relative mx-auto max-w-4xl">
+          {/* Drop shadow element */}
+          <div className="absolute -inset-4 bg-black/10 rounded-2xl blur-xl transform scale-[0.97] translate-y-4 rotate-x-12" />
+          <div
+            className="bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 rounded-lg relative
+            shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)]
+            before:content-[''] before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)]
+            after:content-[''] after:absolute after:-inset-[2px] after:-bottom-[6px] after:rounded-xl after:border after:border-neutral-400 after:-z-10 after:bg-neutral-300
+            transform rotateX(10deg) rotateY(10deg) scale-[0.98]"
+          >
+            <div className="absolute top-4 left-4 text-neutral-600 tracking-wider text-sm font-medium">TX-6</div>
 
-      {/* Digital Display */}
-      <div className="absolute top-4 right-4 bg-black text-neutral-100 px-3 py-1 rounded-sm text-[10px] font-mono flex items-center gap-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-        {isPlaying ? "PLAYING" : "STOPPED"}
-      </div>
+            {/* Digital Display */}
+            <div className="absolute top-4 right-4 bg-black text-neutral-100 px-3 py-1 rounded-sm text-[10px] font-mono flex items-center gap-2 shadow-inner">
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+              {isPlaying ? "PLAYING" : "STOPPED"}
+            </div>
 
-      <div className="flex gap-6 mt-12">
-        {tracks.map((track, index) => (
-          <div key={track.label} className="flex flex-col items-center gap-2">
-            {/* EQ Knobs */}
-            {eqBands.map((band) => (
-              <div key={band} className="relative group">
-                <div
-                  className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-2 border-neutral-100 relative shadow-md cursor-pointer"
-                  style={{
-                    transform: `rotate(${eqRotationRefs.current[index]?.[eqBands.indexOf(band)]?.[0] || ((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 2.7}deg)`,
-                    touchAction: "none",
-                  }}
-                  onPointerDown={(e) => startKnobDrag(e, index, band)}
+            <div className="flex gap-6 mt-12">
+              {tracks.map((track, index) => (
+                <div key={track.label} className="flex flex-col items-center gap-2">
+                  {/* EQ Knobs */}
+                  {eqBands.map((band) => (
+                    <div key={band} className="relative group">
+                      <div
+                        className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-2 border-neutral-100 relative shadow-md cursor-pointer
+                        after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),inset_0_-1px_2px_rgba(0,0,0,0.1)]"
+                        style={{
+                          transform: `rotate(${eqRotationRefs.current[index]?.[eqBands.indexOf(band)]?.[0] || ((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 2.7}deg)`,
+                          touchAction: "none",
+                        }}
+                        onPointerDown={(e) => startKnobDrag(e, index, band)}
+                      >
+                        {/* Position indicator dot at the top */}
+                        <div className="absolute top-0 left-1/2 w-1 h-1 bg-black rounded-full transform -translate-x-1/2" />
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Fader Track */}
+                  <div className="h-48 w-4 rounded-full bg-black relative mt-2 shadow-inner shadow-[inset_0_0_4px_rgba(0,0,0,0.5)] overflow-hidden border border-neutral-700">
+                    <Slider
+                      value={[volumes[index]]}
+                      onValueChange={(value) => handleVolumeChange(value, index)}
+                      orientation="vertical"
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="h-full absolute inset-0 [&_[role=slider]]:shadow-md"
+                    />
+
+                    {/* Dotted indicators */}
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute left-10 w-0.5 h-0.5 bg-neutral-500 rounded-full"
+                        style={{ top: `${(i + 1) * 20}%` }}
+                      />
+                    ))}
+                  </div>
+                  <track.icon className="w-4 h-4" />
+
+                  {/* Mute Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleMute(index)}
+                    className={`mt-2 w-8 h-6 rounded-sm flex items-center justify-center transition-colors ${
+                      muted[index] ? "bg-orange-500 text-white" : "bg-neutral-300 text-neutral-600 hover:bg-neutral-400"
+                    }`}
+                  >
+                    <span className="text-[8px] font-medium">MUTE</span>
+                  </button>
+                </div>
+              ))}
+
+              {/* Play Button and Master Volume */}
+              <div className="flex flex-col items-center gap-4">
+                <button
+                  type="button"
+                  onClick={togglePlayback}
+                  className="w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 flex items-center justify-center 
+                  shadow-[0_4px_8px_rgba(0,0,0,0.2)] transform transition-transform active:scale-95 active:shadow-[0_2px_4px_rgba(0,0,0,0.2)]
+                  after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]"
                 >
-                  {/* Position indicator dot at the top */}
-                  <div className="absolute top-0 left-1/2 w-1 h-1 bg-black rounded-full transform -translate-x-1/2" />
+                  {isPlaying ? <div className="w-4 h-4 bg-orange-500" /> : <Play className="w-5 h-5 ml-0.5 fill-black" />}
+                </button>
+
+                {/* Master Volume Control */}
+                <div className="flex flex-col items-center">
+                  <div
+                    className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 relative 
+                    shadow-[0_6px_12px_rgba(0,0,0,0.15)] cursor-pointer
+                    after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]"
+                    style={{
+                      transform: `rotate(${masterRotationRef.current}deg)`,
+                      touchAction: "none",
+                    }}
+                    onPointerDown={startMasterKnobDrag}
+                  >
+                    <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
+                  </div>
+                  {/* Volume percentage indicator */}
+                  <div className="mt-1 text-[10px] text-neutral-600 font-mono bg-neutral-200 px-2 py-0.5 rounded-sm w-12 text-center">
+                    {masterVolume}%
+                  </div>
                 </div>
               </div>
-            ))}
-
-            {/* Fader Track */}
-            <div className="h-48 w-4 rounded-full bg-black relative mt-2 shadow-inner">
-              <Slider
-                value={[volumes[index]]}
-                onValueChange={(value) => handleVolumeChange(value, index)}
-                orientation="vertical"
-                min={0}
-                max={100}
-                step={1}
-                className="h-full absolute inset-0 [&_[role=slider]]:shadow-md"
-              />
-
-              {/* Dotted indicators */}
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute left-10 w-0.5 h-0.5 bg-neutral-500 rounded-full"
-                  style={{ top: `${(i + 1) * 20}%` }}
-                />
-              ))}
-            </div>
-            <track.icon className="w-4 h-4" />
-
-            {/* Mute Button */}
-            <button
-              type="button"
-              onClick={() => toggleMute(index)}
-              className={`mt-2 w-8 h-6 rounded-sm flex items-center justify-center transition-colors ${
-                muted[index] ? "bg-orange-500 text-white" : "bg-neutral-300 text-neutral-600 hover:bg-neutral-400"
-              }`}
-            >
-              <span className="text-[8px] font-medium">MUTE</span>
-            </button>
-          </div>
-        ))}
-
-        {/* Play Button and Master Volume */}
-        <div className="flex flex-col items-center gap-4">
-          <button
-            type="button"
-            onClick={togglePlayback}
-            className="w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 flex items-center justify-center shadow-lg transform transition-transform active:scale-95"
-          >
-            {isPlaying ? <div className="w-4 h-4 bg-orange-500" /> : <Play className="w-5 h-5 ml-0.5 fill-black" />}
-          </button>
-
-          {/* Master Volume Control */}
-          <div className="flex flex-col items-center">
-            <div
-              className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 relative shadow-md cursor-pointer"
-              style={{
-                transform: `rotate(${masterRotationRef.current}deg)`,
-                touchAction: "none",
-              }}
-              onPointerDown={startMasterKnobDrag}
-            >
-              <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
-            </div>
-            {/* Volume percentage indicator */}
-            <div className="mt-1 text-[10px] text-neutral-600 font-mono bg-neutral-200 px-2 py-0.5 rounded-sm w-12 text-center">
-              {masterVolume}%
             </div>
           </div>
         </div>
