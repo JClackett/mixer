@@ -1,25 +1,30 @@
 "use client"
 
 import { Slider } from "@/components/ui/slider"
-import { Play } from "lucide-react"
+import { AudioLinesIcon, BirdIcon, DropletsIcon, Play, WavesIcon } from "lucide-react"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 
 const tracks = [
   {
-    name: "1",
     url: "/birds.wav",
     label: "BIRDS",
+    icon: BirdIcon,
   },
   {
-    name: "2",
     url: "/waves.wav",
     label: "WAVES",
+    icon: WavesIcon,
   },
   {
-    name: "3",
+    url: "/rain.wav",
+    label: "RAIN",
+    icon: DropletsIcon,
+  },
+  {
     url: "/noise.wav",
     label: "NOISE",
+    icon: AudioLinesIcon,
   },
 ]
 
@@ -195,10 +200,7 @@ export default function AudioMixer() {
   }
 
   return (
-    <div
-      className="bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_0_1px_rgba(255,255,255,0.5)] relative"
-      style={{ width: "300px" }}
-    >
+    <div className="bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.1),inset_0_0_0_1px_rgba(255,255,255,0.5)] relative">
       <div className="absolute top-4 left-4 text-neutral-600 tracking-wider text-sm font-medium">TX-6</div>
 
       {/* Digital Display */}
@@ -209,7 +211,7 @@ export default function AudioMixer() {
 
       <div className="flex gap-6 mt-12">
         {tracks.map((track, index) => (
-          <div key={track.name} className="flex flex-col items-center gap-2">
+          <div key={track.label} className="flex flex-col items-center gap-2">
             {/* EQ Knobs */}
             {eqBands.map((band) => (
               <div key={band} className="relative group">
@@ -250,6 +252,7 @@ export default function AudioMixer() {
                 />
               ))}
             </div>
+            <track.icon className="w-4 h-4" />
 
             {/* Mute Button */}
             <button
