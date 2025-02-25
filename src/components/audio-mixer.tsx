@@ -327,6 +327,7 @@ const EQKnob = memo(function EQKnob({
     <div className="relative group">
       <div
         ref={knobRef}
+        suppressHydrationWarning
         className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-2 border-neutral-100 dark:border-neutral-600 relative shadow-md cursor-pointer
             after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),inset_0_-1px_2px_rgba(0,0,0,0.1)]
             dark:after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),inset_0_-1px_2px_rgba(0,0,0,0.2)]"
@@ -399,6 +400,7 @@ const MasterKnob = memo(function MasterKnob({
   return (
     <div
       ref={knobRef}
+      suppressHydrationWarning
       className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 relative 
           shadow-[0_6px_12px_rgba(0,0,0,0.15)] cursor-pointer
           after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
@@ -538,6 +540,7 @@ export function AudioMixer() {
       {/* Updated drop shadow for dark mode */}
       <div className="absolute -inset-4 bg-black/10 dark:bg-black/30 rounded-2xl blur-xl transform scale-[0.97] translate-y-4 rotate-x-12" />
       <div
+        suppressHydrationWarning
         className="bg-gradient-to-b from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900 p-8 rounded-lg relative
             shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)]
             before:content-[''] before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)]
@@ -578,6 +581,7 @@ export function AudioMixer() {
             <button
               type="button"
               onClick={togglePlayback}
+              suppressHydrationWarning
               className="w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 flex items-center justify-center 
                   shadow-[0_4px_8px_rgba(0,0,0,0.2)] transform transition-transform active:scale-95 active:shadow-[0_2px_4px_rgba(0,0,0,0.2)]
                   after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
