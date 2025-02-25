@@ -1,4 +1,3 @@
-import { ReactScan } from "@/components/react-scan"
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <ReactScan />
+      {/* <ReactScan /> */}
       <body>
         <NextThemesProvider defaultTheme="system" attribute="class">
           {children}
