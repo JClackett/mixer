@@ -51,7 +51,7 @@ export function AudioMixer() {
   const initialTrackVolumesRef = useRef(new Array(tracks.length).fill(50))
   const startYRef = useRef<number>(0)
   const startValueRef = useRef<number>(0)
-  const masterRotationRef = useRef((masterVolume - 50) * 3.6)
+  const masterRotationRef = useRef((masterVolume - 50) * 3.6 - 90)
   const eqRotationRefs = useRef<number[][][]>([])
 
   useEffect(() => {
@@ -140,7 +140,8 @@ export function AudioMixer() {
 
   // Update rotation refs when volume or eq changes
   useEffect(() => {
-    masterRotationRef.current = (masterVolume - 50) * 3.6
+    // Subtract 90 degrees to make 50% point up
+    masterRotationRef.current = (masterVolume - 50) * 3.6 - 90
   }, [masterVolume])
 
   useEffect(() => {
@@ -228,8 +229,8 @@ export function AudioMixer() {
         const deltaY = startYRef.current - e.clientY
         const newValue = Math.max(0, Math.min(100, startValueRef.current + deltaY / 2))
 
-        // Update rotation directly during drag
-        masterRotationRef.current = (Math.round(newValue) - 50) * 3.6
+        // Update rotation directly during drag (with -90 degree offset)
+        masterRotationRef.current = (Math.round(newValue) - 50) * 3.6 - 90
 
         // Update state (this will also trigger the useEffect to update audio)
         handleMasterVolumeChange([newValue])
@@ -301,138 +302,134 @@ export function AudioMixer() {
   }
 
   return (
-    <div className="relative py-8">
-      <div className="w-full perspective-[1500px] transform-gpu">
-        <div className="relative mx-auto max-w-4xl">
-          {/* Updated drop shadow for dark mode */}
-          <div className="absolute -inset-4 bg-black/10 dark:bg-black/30 rounded-2xl blur-xl transform scale-[0.97] translate-y-4 rotate-x-12" />
-          <div
-            className="bg-gradient-to-b from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900 p-8 rounded-lg relative
+    <div className="relative mx-auto max-w-4xl">
+      {/* Updated drop shadow for dark mode */}
+      <div className="absolute -inset-4 bg-black/10 dark:bg-black/30 rounded-2xl blur-xl transform scale-[0.97] translate-y-4 rotate-x-12" />
+      <div
+        className="bg-gradient-to-b from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900 p-8 rounded-lg relative
             shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)]
             before:content-[''] before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)]
             dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]
             after:content-[''] after:absolute after:-inset-[2px] after:-bottom-[6px] after:rounded-xl after:border after:border-neutral-400 dark:after:border-neutral-600 after:-z-10 after:bg-neutral-300 dark:after:bg-neutral-700
             transform rotateX(10deg) rotateY(10deg) scale-[0.98]"
-          >
-            <div className="absolute top-4 left-4 text-neutral-600 dark:text-neutral-400 tracking-wider text-sm font-medium">
-              J3-C7
-            </div>
+      >
+        <div className="absolute top-4 left-4 text-neutral-600 dark:text-neutral-400 tracking-wider text-sm font-medium">
+          J3-C7
+        </div>
 
-            {/* Digital Display */}
-            <div className="absolute top-4 right-4 bg-black pl-2 text-neutral-100 flex-row justify-start h-[24px] rounded-sm text-[10px] font-mono flex items-center shadow-inner">
-              <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-              <div className="flex items-center justify-center w-[60px]">
-                {/* Use the new Waveform component */}
-                <Waveform isPlaying={isPlaying} />
-              </div>
-            </div>
+        {/* Digital Display */}
+        <div className="absolute top-4 right-4 bg-black pl-2 text-neutral-100 flex-row justify-start h-[24px] rounded-sm text-[10px] font-mono flex items-center shadow-inner">
+          <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+          <div className="flex items-center justify-center w-[60px]">
+            {/* Use the new Waveform component */}
+            <Waveform isPlaying={isPlaying} />
+          </div>
+        </div>
 
-            <div className="flex gap-6 mt-12">
-              {tracks.map((track, index) => (
-                <div key={track.label} className="flex flex-col items-center gap-2">
-                  {/* EQ Knobs */}
-                  {eqBands.map((band) => (
-                    <div key={band} className="relative group">
-                      <div
-                        className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-2 border-neutral-100 dark:border-neutral-600 relative shadow-md cursor-pointer
+        <div className="flex gap-6 mt-12">
+          {tracks.map((track, index) => (
+            <div key={track.label} className="flex flex-col items-center gap-2">
+              {/* EQ Knobs */}
+              {eqBands.map((band) => (
+                <div key={band} className="relative group">
+                  <div
+                    className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-2 border-neutral-100 dark:border-neutral-600 relative shadow-md cursor-pointer
                         after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),inset_0_-1px_2px_rgba(0,0,0,0.1)]
                         dark:after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),inset_0_-1px_2px_rgba(0,0,0,0.2)]"
-                        onPointerDown={(e) => startKnobDrag(e, index, band)}
-                      >
-                        <div
-                          className="absolute inset-0 rounded-full"
-                          style={{
-                            transform: `rotate(${eqRotationRefs.current[index]?.[eqBands.indexOf(band)]?.[0] || ((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 2.7}deg)`,
-                            touchAction: "none",
-                          }}
-                        >
-                          {/* Position indicator dot */}
-                          <div className="absolute top-0 left-1/2 w-1 h-1 bg-black dark:bg-white rounded-full transform -translate-x-1/2" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Fader Track */}
-                  <div className="h-48 w-4 rounded-full bg-black relative mt-2 shadow-[inset_0_0_4px_rgba(0,0,0,0.5)] overflow-hidden border border-neutral-700">
-                    <Slider
-                      value={[volumes[index]]}
-                      onValueChange={(value) => handleVolumeChange(value, index)}
-                      orientation="vertical"
-                      min={0}
-                      max={100}
-                      step={1}
-                      className="h-full absolute inset-0 [&_[role=slider]]:shadow-md"
-                    />
-
-                    {/* Dotted indicators */}
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="absolute left-10 w-0.5 h-0.5 bg-neutral-500 rounded-full"
-                        style={{ top: `${(i + 1) * 20}%` }}
-                      />
-                    ))}
-                  </div>
-                  <track.icon className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />
-
-                  {/* Mute Button */}
-                  <button
-                    type="button"
-                    onClick={() => toggleMute(index)}
-                    className={cn(
-                      "mt-2 min-w-6 min-h-6 shadow-sm shrink-0 rounded-full flex items-center justify-center transition-colors z-10",
-                      muted[index]
-                        ? "bg-orange-500 text-white shadow-sm"
-                        : "border border-neutral-400/70 dark:border-neutral-500/70 dark:text-neutral-300",
-                    )}
-                  >
-                    <VolumeOffIcon size={12} />
-                  </button>
-                </div>
-              ))}
-
-              {/* Play Button and Master Volume */}
-              <div className="flex flex-col items-center gap-4">
-                <button
-                  type="button"
-                  onClick={togglePlayback}
-                  className="w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 flex items-center justify-center 
-                  shadow-[0_4px_8px_rgba(0,0,0,0.2)] transform transition-transform active:scale-95 active:shadow-[0_2px_4px_rgba(0,0,0,0.2)]
-                  after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
-                  dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]"
-                >
-                  {isPlaying ? (
-                    <div className="w-4 h-4 bg-orange-500" />
-                  ) : (
-                    <Play className="w-5 h-5 ml-0.5 fill-black dark:fill-white" />
-                  )}
-                </button>
-
-                {/* Master Volume Control */}
-                <div className="flex flex-col items-center">
-                  <div
-                    className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 relative 
-                    shadow-[0_6px_12px_rgba(0,0,0,0.15)] cursor-pointer
-                    after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
-                    dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]"
-                    onPointerDown={startMasterKnobDrag}
+                    onPointerDown={(e) => startKnobDrag(e, index, band)}
                   >
                     <div
                       className="absolute inset-0 rounded-full"
                       style={{
-                        transform: `rotate(${masterRotationRef.current}deg)`,
+                        transform: `rotate(${eqRotationRefs.current[index]?.[eqBands.indexOf(band)]?.[0] || ((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 2.7}deg)`,
                         touchAction: "none",
                       }}
                     >
-                      <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
+                      {/* Position indicator dot */}
+                      <div className="absolute top-0 left-1/2 w-1 h-1 bg-black dark:bg-white rounded-full transform -translate-x-1/2" />
                     </div>
                   </div>
-                  {/* Volume percentage indicator */}
-                  <div className="mt-1 text-[10px] text-neutral-600 dark:text-neutral-400 font-mono bg-neutral-200 dark:bg-neutral-800 px-2 py-0.5 rounded-sm w-12 text-center">
-                    {masterVolume}%
-                  </div>
                 </div>
+              ))}
+
+              {/* Fader Track */}
+              <div className="h-48 w-4 rounded-full bg-black relative mt-2 shadow-[inset_0_0_4px_rgba(0,0,0,0.5)] overflow-hidden border border-neutral-700">
+                <Slider
+                  value={[volumes[index]]}
+                  onValueChange={(value) => handleVolumeChange(value, index)}
+                  orientation="vertical"
+                  min={0}
+                  max={100}
+                  step={1}
+                  className="h-full absolute inset-0 [&_[role=slider]]:shadow-md"
+                />
+
+                {/* Dotted indicators */}
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute left-10 w-0.5 h-0.5 bg-neutral-500 rounded-full"
+                    style={{ top: `${(i + 1) * 20}%` }}
+                  />
+                ))}
+              </div>
+              <track.icon className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />
+
+              {/* Mute Button */}
+              <button
+                type="button"
+                onClick={() => toggleMute(index)}
+                className={cn(
+                  "mt-2 min-w-6 min-h-6 shadow-sm shrink-0 rounded-full flex items-center justify-center transition-colors z-10",
+                  muted[index]
+                    ? "bg-orange-500 text-white shadow-sm"
+                    : "border border-neutral-400/70 dark:border-neutral-500/70 dark:text-neutral-300",
+                )}
+              >
+                <VolumeOffIcon size={12} />
+              </button>
+            </div>
+          ))}
+
+          {/* Play Button and Master Volume */}
+          <div className="flex flex-col items-center gap-4">
+            <button
+              type="button"
+              onClick={togglePlayback}
+              className="w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 flex items-center justify-center 
+                  shadow-[0_4px_8px_rgba(0,0,0,0.2)] transform transition-transform active:scale-95 active:shadow-[0_2px_4px_rgba(0,0,0,0.2)]
+                  after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
+                  dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]"
+            >
+              {isPlaying ? (
+                <div className="w-4 h-4 bg-orange-500" />
+              ) : (
+                <Play className="w-5 h-5 ml-0.5 fill-black dark:fill-white" />
+              )}
+            </button>
+
+            {/* Master Volume Control */}
+            <div className="flex flex-col items-center">
+              <div
+                className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 relative 
+                    shadow-[0_6px_12px_rgba(0,0,0,0.15)] cursor-pointer
+                    after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
+                    dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]"
+                onPointerDown={startMasterKnobDrag}
+              >
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    transform: `rotate(${masterRotationRef.current}deg)`,
+                    touchAction: "none",
+                  }}
+                >
+                  <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
+                </div>
+              </div>
+              {/* Volume percentage indicator */}
+              <div className="mt-1 text-[10px] text-neutral-600 dark:text-neutral-400 font-mono bg-neutral-200 dark:bg-neutral-800 px-2 py-0.5 rounded-sm w-12 text-center">
+                {masterVolume}%
               </div>
             </div>
           </div>
