@@ -331,14 +331,19 @@ export default function AudioMixer() {
                       <div
                         className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-2 border-neutral-100 relative shadow-md cursor-pointer
                         after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),inset_0_-1px_2px_rgba(0,0,0,0.1)]"
-                        style={{
-                          transform: `rotate(${eqRotationRefs.current[index]?.[eqBands.indexOf(band)]?.[0] || ((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 2.7}deg)`,
-                          touchAction: "none",
-                        }}
                         onPointerDown={(e) => startKnobDrag(e, index, band)}
                       >
-                        {/* Position indicator dot at the top */}
-                        <div className="absolute top-0 left-1/2 w-1 h-1 bg-black rounded-full transform -translate-x-1/2" />
+                        {/* Rotatable inner part with the indicator */}
+                        <div
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            transform: `rotate(${eqRotationRefs.current[index]?.[eqBands.indexOf(band)]?.[0] || ((eq[index][band as keyof (typeof eq)[0]] || 50) - 50) * 2.7}deg)`,
+                            touchAction: "none",
+                          }}
+                        >
+                          {/* Position indicator dot at the top */}
+                          <div className="absolute top-0 left-1/2 w-1 h-1 bg-black rounded-full transform -translate-x-1/2" />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -397,13 +402,17 @@ export default function AudioMixer() {
                     className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 relative 
                     shadow-[0_6px_12px_rgba(0,0,0,0.15)] cursor-pointer
                     after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]"
-                    style={{
-                      transform: `rotate(${masterRotationRef.current}deg)`,
-                      touchAction: "none",
-                    }}
                     onPointerDown={startMasterKnobDrag}
                   >
-                    <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
+                    <div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        transform: `rotate(${masterRotationRef.current}deg)`,
+                        touchAction: "none",
+                      }}
+                    >
+                      <div className="absolute -right-1 top-1/2 w-2 h-2 bg-orange-500 rounded-full transform -translate-y-1/2" />
+                    </div>
                   </div>
                   {/* Volume percentage indicator */}
                   <div className="mt-1 text-[10px] text-neutral-600 font-mono bg-neutral-200 px-2 py-0.5 rounded-sm w-12 text-center">
