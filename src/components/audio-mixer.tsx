@@ -11,7 +11,7 @@ const tracks = [
     url: "/birds.wav",
     label: "BIRDS",
     icon: BirdIcon,
-    gainBoost: 0.7, // Default gain multiplier
+    gainBoost: 0.3, // Default gain multiplier
   },
   {
     url: "/waves.wav",
@@ -136,11 +136,6 @@ export function AudioMixer() {
     if (masterGainRef.current) {
       masterGainRef.current.gain.value = masterVolume / 100
     }
-  }, [masterVolume])
-
-  // Update rotation refs when volume or eq changes
-  useEffect(() => {
-    // Subtract 90 degrees to make 50% point up
     masterRotationRef.current = (masterVolume - 50) * 3.6 - 90
   }, [masterVolume])
 
