@@ -302,20 +302,21 @@ export function AudioMixer() {
 
   return (
     <div className="relative py-8">
-      {/* Added outer container with perspective and 3D effects */}
       <div className="w-full perspective-[1500px] transform-gpu">
-        {/* Adding drop shadow container */}
         <div className="relative mx-auto max-w-4xl">
-          {/* Drop shadow element */}
-          <div className="absolute -inset-4 bg-black/10 rounded-2xl blur-xl transform scale-[0.97] translate-y-4 rotate-x-12" />
+          {/* Updated drop shadow for dark mode */}
+          <div className="absolute -inset-4 bg-black/10 dark:bg-black/30 rounded-2xl blur-xl transform scale-[0.97] translate-y-4 rotate-x-12" />
           <div
-            className="bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 rounded-lg relative
+            className="bg-gradient-to-b from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900 p-8 rounded-lg relative
             shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)]
             before:content-[''] before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)]
-            after:content-[''] after:absolute after:-inset-[2px] after:-bottom-[6px] after:rounded-xl after:border after:border-neutral-400 after:-z-10 after:bg-neutral-300
+            dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]
+            after:content-[''] after:absolute after:-inset-[2px] after:-bottom-[6px] after:rounded-xl after:border after:border-neutral-400 dark:after:border-neutral-600 after:-z-10 after:bg-neutral-300 dark:after:bg-neutral-700
             transform rotateX(10deg) rotateY(10deg) scale-[0.98]"
           >
-            <div className="absolute top-4 left-4 text-neutral-600 tracking-wider text-sm font-medium">J3-C7</div>
+            <div className="absolute top-4 left-4 text-neutral-600 dark:text-neutral-400 tracking-wider text-sm font-medium">
+              J3-C7
+            </div>
 
             {/* Digital Display */}
             <div className="absolute top-4 right-4 bg-black pl-2 text-neutral-100 flex-row justify-start h-[24px] rounded-sm text-[10px] font-mono flex items-center shadow-inner">
@@ -333,11 +334,11 @@ export function AudioMixer() {
                   {eqBands.map((band) => (
                     <div key={band} className="relative group">
                       <div
-                        className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-2 border-neutral-100 relative shadow-md cursor-pointer
-                        after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),inset_0_-1px_2px_rgba(0,0,0,0.1)]"
+                        className="w-6 h-6 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-2 border-neutral-100 dark:border-neutral-600 relative shadow-md cursor-pointer
+                        after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),inset_0_-1px_2px_rgba(0,0,0,0.1)]
+                        dark:after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),inset_0_-1px_2px_rgba(0,0,0,0.2)]"
                         onPointerDown={(e) => startKnobDrag(e, index, band)}
                       >
-                        {/* Rotatable inner part with the indicator */}
                         <div
                           className="absolute inset-0 rounded-full"
                           style={{
@@ -345,8 +346,8 @@ export function AudioMixer() {
                             touchAction: "none",
                           }}
                         >
-                          {/* Position indicator dot at the top */}
-                          <div className="absolute top-0 left-1/2 w-1 h-1 bg-black rounded-full transform -translate-x-1/2" />
+                          {/* Position indicator dot */}
+                          <div className="absolute top-0 left-1/2 w-1 h-1 bg-black dark:bg-white rounded-full transform -translate-x-1/2" />
                         </div>
                       </div>
                     </div>
@@ -373,7 +374,7 @@ export function AudioMixer() {
                       />
                     ))}
                   </div>
-                  <track.icon className="w-4 h-4" />
+                  <track.icon className="w-4 h-4 text-neutral-800 dark:text-neutral-200" />
 
                   {/* Mute Button */}
                   <button
@@ -381,7 +382,9 @@ export function AudioMixer() {
                     onClick={() => toggleMute(index)}
                     className={cn(
                       "mt-2 min-w-6 min-h-6 shadow-sm shrink-0 rounded-full flex items-center justify-center transition-colors z-10",
-                      muted[index] ? "bg-orange-500 text-white shadow-sm" : "border border-neutral-400/70",
+                      muted[index]
+                        ? "bg-orange-500 text-white shadow-sm"
+                        : "border border-neutral-400/70 dark:border-neutral-500/70 dark:text-neutral-300",
                     )}
                   >
                     <VolumeOffIcon size={12} />
@@ -394,19 +397,25 @@ export function AudioMixer() {
                 <button
                   type="button"
                   onClick={togglePlayback}
-                  className="w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 flex items-center justify-center 
+                  className="w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 flex items-center justify-center 
                   shadow-[0_4px_8px_rgba(0,0,0,0.2)] transform transition-transform active:scale-95 active:shadow-[0_2px_4px_rgba(0,0,0,0.2)]
-                  after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]"
+                  after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
+                  dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]"
                 >
-                  {isPlaying ? <div className="w-4 h-4 bg-orange-500" /> : <Play className="w-5 h-5 ml-0.5 fill-black" />}
+                  {isPlaying ? (
+                    <div className="w-4 h-4 bg-orange-500" />
+                  ) : (
+                    <Play className="w-5 h-5 ml-0.5 fill-black dark:fill-white" />
+                  )}
                 </button>
 
                 {/* Master Volume Control */}
                 <div className="flex flex-col items-center">
                   <div
-                    className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 rounded-full border-4 border-neutral-100 relative 
+                    className="w-16 h-16 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 relative 
                     shadow-[0_6px_12px_rgba(0,0,0,0.15)] cursor-pointer
-                    after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]"
+                    after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
+                    dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]"
                     onPointerDown={startMasterKnobDrag}
                   >
                     <div
@@ -420,7 +429,7 @@ export function AudioMixer() {
                     </div>
                   </div>
                   {/* Volume percentage indicator */}
-                  <div className="mt-1 text-[10px] text-neutral-600 font-mono bg-neutral-200 px-2 py-0.5 rounded-sm w-12 text-center">
+                  <div className="mt-1 text-[10px] text-neutral-600 dark:text-neutral-400 font-mono bg-neutral-200 dark:bg-neutral-800 px-2 py-0.5 rounded-sm w-12 text-center">
                     {masterVolume}%
                   </div>
                 </div>

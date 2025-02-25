@@ -2,21 +2,22 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { ReactScan } from "@/components/react-scan"
 
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.dev",
+  title: "Mixer - J3-C7",
+  description: "Soundscape mixer to relax and zone out",
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <ReactScan />
-      <body>{children}</body>
+      <body>
+        <NextThemesProvider defaultTheme="system" attribute="class">
+          {children}
+        </NextThemesProvider>
+      </body>
     </html>
   )
 }
