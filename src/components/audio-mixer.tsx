@@ -35,7 +35,7 @@ const tracks = [
 
 const eqBands = ["HIGH", "MID", "LOW"]
 
-export default function AudioMixer() {
+export function AudioMixer() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [volumes, setVolumes] = useState(new Array(tracks.length).fill(50))
   const [muted, setMuted] = useState(new Array(tracks.length).fill(false))
@@ -326,9 +326,9 @@ export default function AudioMixer() {
             shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)]
             before:content-[''] before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)]
             after:content-[''] after:absolute after:-inset-[2px] after:-bottom-[6px] after:rounded-xl after:border after:border-neutral-400 after:-z-10 after:bg-neutral-300
-            transform rotateX(10deg) rotateY(10deg) scale-[0.98] before:-z-10"
+            transform rotateX(10deg) rotateY(10deg) scale-[0.98]"
           >
-            <div className="absolute top-4 left-4 text-neutral-600 tracking-wider text-sm font-medium">TX-6</div>
+            <div className="absolute top-4 left-4 text-neutral-600 tracking-wider text-sm font-medium">J3-C7</div>
 
             {/* Digital Display */}
             <div className="absolute top-4 right-4 bg-black pl-2 text-neutral-100 flex-row justify-start h-[24px] rounded-sm text-[10px] font-mono flex items-center shadow-inner">
@@ -402,7 +402,7 @@ export default function AudioMixer() {
                     type="button"
                     onClick={() => toggleMute(index)}
                     className={cn(
-                      "mt-2 min-w-6 min-h-6 shadow-sm shrink-0 rounded-full flex items-center justify-center transition-colors",
+                      "mt-2 min-w-6 min-h-6 shadow-sm shrink-0 rounded-full flex items-center justify-center transition-colors z-10",
                       muted[index] ? "bg-orange-500 text-white shadow-sm" : "border border-neutral-400/70",
                     )}
                   >

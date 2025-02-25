@@ -1,4 +1,4 @@
-import AudioMixer from "../components/audio-mixer"
+import { AudioMixer } from "../components/audio-mixer"
 
 export default function Page() {
   return (
@@ -7,4 +7,3 @@ export default function Page() {
     </div>
   )
 }
-
