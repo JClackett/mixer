@@ -1,0 +1,10 @@
+{
+  "extends": ["config:recommended"],
+  "baseBranches": ["main"],
+  "automerge": true,
+  "major": {
+    "automerge": false
+  },
+  "ignoreTests": true,
+  "ignoreDeps": []
+}
