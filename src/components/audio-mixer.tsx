@@ -100,6 +100,7 @@ function useAudioEngine() {
             audio.src = track.url
             audio.crossOrigin = "anonymous"
             audio.loop = true
+            audio.preload = "auto"
 
             // Preload audio
             await audio.load()
