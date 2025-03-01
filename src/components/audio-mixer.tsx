@@ -329,23 +329,24 @@ const EQKnob = memo(function EQKnob({
       <div
         ref={knobRef}
         suppressHydrationWarning
-        className="relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_6px_6px_rgba(0,0,0,0.4)]"
+        className="relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_6px_6px_rgba(0,0,0,0.4)] dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50">
+        <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 dark:border-neutral-700">
           <div
             className="absolute inset-0 rounded-full"
             style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
           >
             {/* Position indicator dot */}
-            <div className="-translate-x-1/2 absolute top-1 left-1/2 h-1 w-1 transform rounded-full bg-neutral-600 dark:bg-white" />
+            <div className="-translate-x-1/2 absolute top-1 left-1/2 h-1 w-1 transform rounded-full bg-neutral-600 dark:bg-neutral-200" />
+
             {Array.from({ length: 30 }).map((_, i) => (
               <div
                 key={i}
-                className="-z-[1] bg-neutral-300"
+                className="-z-[1] bg-neutral-300 dark:bg-neutral-800"
                 style={{
                   transform: `rotate(${i * 12}deg) translateY(-12px)`,
                   position: "absolute",
@@ -506,17 +507,17 @@ const Track = memo(function Track({
       <Icon className="h-4 w-4 text-neutral-800 dark:text-neutral-200" />
 
       {/* Mute Button */}
-      <div className="mt-2 rounded-full border border-neutral-400/70 dark:border-neutral-500/70 dark:text-neutral-300">
+      <div className="mt-2 rounded-full border-[1px] border-neutral-400/70 dark:border-neutral-700 dark:text-neutral-300">
         <button
           type="button"
           onClick={() => onMuteToggle(index)}
           className={cn(
-            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-200/50 bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-sm active:scale-96",
+            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-200/50 bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-sm active:scale-96 dark:border-neutral-500/70 dark:from-neutral-600 dark:to-neutral-800/60",
           )}
         >
           <VolumeOffIcon
             size={12}
-            className={isMuted ? "rounded-full bg-orange-500/10 text-orange-500" : "text-neutral-700 dark:text-neutral-200"}
+            className={isMuted ? "rounded-full bg-orange-500/10 text-orange-500" : "text-neutral-700 dark:text-neutral-400"}
           />
         </button>
       </div>
@@ -589,7 +590,7 @@ export function AudioMixer() {
         {/* Digital Display */}
 
         <div className="absolute top-4 right-4 rounded-sm shadow-sm">
-          <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100">
+          <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
             <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-orange-500/50 shadow-sm" />
             <div className="flex w-[60px] items-center justify-center">
               <Waveform isPlaying={isPlaying} />
@@ -651,7 +652,7 @@ export function AudioMixer() {
 
               {/* Volume percentage indicator */}
               <div className="rounded-sm shadow-sm">
-                <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-12 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100">
+                <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-12 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
                   {masterVolume}%
                   <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
                 </div>
