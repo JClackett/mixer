@@ -59,6 +59,13 @@ const EQ_BANDS: EQBand[] = ["HIGH", "MID", "LOW"]
 const DEFAULT_VOLUME = 50
 const INITIAL_MASTER_VOLUME = 75
 
+// Define frequency values as constants to avoid magic numbers
+const EQ_FREQUENCIES = {
+  HIGH: 4000,
+  MID: 1000,
+  LOW: 400,
+}
+
 // Custom hook for audio initialization and management
 function useAudioEngine() {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -123,14 +130,14 @@ function useAudioEngine() {
 
             // Configure filters
             highEQ.type = "highshelf"
-            highEQ.frequency.value = 4000
+            highEQ.frequency.value = EQ_FREQUENCIES.HIGH
 
             midEQ.type = "peaking"
-            midEQ.frequency.value = 1000
+            midEQ.frequency.value = EQ_FREQUENCIES.MID
             midEQ.Q.value = 1
 
             lowEQ.type = "lowshelf"
-            lowEQ.frequency.value = 400
+            lowEQ.frequency.value = EQ_FREQUENCIES.LOW
 
             // Apply the gain boost to normalize volume differences between tracks
             gainNode.gain.value = (initialTrackVolumesRef.current[i] / 100) * track.gainBoost
@@ -329,6 +336,55 @@ function useAudioEngine() {
   }
 }
 
+// Extract common knob logic into a custom hook
+function useKnob(initialValue: number, onChange: (value: number) => void) {
+  const knobRef = useRef<HTMLDivElement>(null)
+  const startYRef = useRef<number>(0)
+  const startValueRef = useRef<number>(0)
+  const isDraggingRef = useRef(false)
+  const rotationDegrees = useMemo(() => (initialValue - 50) * 2.7, [initialValue])
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault()
+      isDraggingRef.current = true
+      startYRef.current = e.clientY
+      startValueRef.current = initialValue
+
+      // Capture pointer to ensure smooth dragging
+      knobRef.current?.setPointerCapture(e.pointerId)
+    },
+    [initialValue],
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDraggingRef.current) return
+
+      const deltaY = startYRef.current - e.clientY
+      const newValue = Math.max(0, Math.min(100, startValueRef.current + deltaY / 2))
+
+      onChange(Math.round(newValue))
+    },
+    [onChange],
+  )
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false
+      knobRef.current?.releasePointerCapture(e.pointerId)
+    }
+  }, [])
+
+  return {
+    knobRef,
+    rotationDegrees,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+  }
+}
+
 // EQ Knob component
 const EQKnob = memo(function EQKnob({
   value,
@@ -341,43 +397,14 @@ const EQKnob = memo(function EQKnob({
   band: EQBand
   trackIndex: number
 }) {
-  const knobRef = useRef<HTMLDivElement>(null)
-  const startYRef = useRef<number>(0)
-  const startValueRef = useRef<number>(0)
-  const isDraggingRef = useRef(false)
-  const rotationDegrees = useMemo(() => (value - 50) * 2.7, [value])
-
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      e.preventDefault()
-      isDraggingRef.current = true
-      startYRef.current = e.clientY
-      startValueRef.current = value
-
-      // Capture pointer to ensure smooth dragging
-      knobRef.current?.setPointerCapture(e.pointerId)
-    },
-    [value],
-  )
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!isDraggingRef.current) return
-
-      const deltaY = startYRef.current - e.clientY
-      const newValue = Math.max(0, Math.min(100, startValueRef.current + deltaY / 2))
-
+  const handleChange = useCallback(
+    (newValue: number) => {
       onChange(trackIndex, band, newValue)
     },
-    [band, onChange, trackIndex],
+    [onChange, trackIndex, band],
   )
 
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (isDraggingRef.current) {
-      isDraggingRef.current = false
-      knobRef.current?.releasePointerCapture(e.pointerId)
-    }
-  }, [])
+  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp } = useKnob(value, handleChange)
 
   return (
     <div className="group relative">
@@ -429,43 +456,7 @@ const MasterKnob = memo(function MasterKnob({
   value: number
   onChange: (value: number) => void
 }) {
-  const knobRef = useRef<HTMLDivElement>(null)
-  const startYRef = useRef<number>(0)
-  const startValueRef = useRef<number>(0)
-  const isDraggingRef = useRef(false)
-  const rotationDegrees = useMemo(() => (value - 50) * 2.7, [value])
-
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      e.preventDefault()
-      isDraggingRef.current = true
-      startYRef.current = e.clientY
-      startValueRef.current = value
-
-      // Capture pointer to ensure smooth dragging
-      knobRef.current?.setPointerCapture(e.pointerId)
-    },
-    [value],
-  )
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!isDraggingRef.current) return
-
-      const deltaY = startYRef.current - e.clientY
-      const newValue = Math.max(0, Math.min(100, startValueRef.current + deltaY / 2))
-
-      onChange(Math.round(newValue))
-    },
-    [onChange],
-  )
-
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (isDraggingRef.current) {
-      isDraggingRef.current = false
-      knobRef.current?.releasePointerCapture(e.pointerId)
-    }
-  }, [])
+  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp } = useKnob(value, onChange)
 
   return (
     <div className="group relative">
@@ -605,6 +596,65 @@ const Waveform = memo(function Waveform({ isPlaying }: { isPlaying: boolean }) {
   )
 })
 
+// Extract UI components
+const DisplayPanel = memo(function DisplayPanel({ isPlaying }: { isPlaying: boolean }) {
+  return (
+    <div className="absolute top-4 right-4 rounded-sm shadow-sm">
+      <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
+        <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-orange-500/50 shadow-sm" />
+        <div className="flex w-[60px] items-center justify-center">
+          <Waveform isPlaying={isPlaying} />
+        </div>
+        <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
+      </div>
+    </div>
+  )
+})
+
+const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying: boolean; onClick: () => void }) {
+  return (
+    <div className="relative rounded-full bg-gradient-to-b from-neutral-400/80 to-neutral-300 p-1 dark:from-neutral-700 dark:to-neutral-800">
+      <div className="rounded-full border-[0.5px] border-neutral-500">
+        <button
+          type="button"
+          onClick={onClick}
+          suppressHydrationWarning
+          className={cn(
+            "group flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-neutral-400 p-0.5 transition",
+            isPlaying
+              ? "scale-96 shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)] active:scale-93"
+              : "scale-100 shadow-[0_4px_6px_0px_rgba(0,0,0,0.4)] active:scale-94 active:shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)]",
+          )}
+        >
+          <div className="rounded-full border-[0.5px] border-neutral-300/80">
+            <div className="flex h-12 w-12 items-start justify-center overflow-hidden rounded-full border-neutral-300/50 bg-gradient-to-b from-neutral-500/70 to-neutral-200 pt-2">
+              <div
+                className={cn(
+                  "h-2 w-1 rounded-full border-[0.2px] transition",
+                  isPlaying
+                    ? "border-transparent bg-orange-500 shadow shadow-orange-500/50"
+                    : "border-neutral-50/50 bg-neutral-700",
+                )}
+              />
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+  )
+})
+
+const VolumeDisplay = memo(function VolumeDisplay({ volume }: { volume: number }) {
+  return (
+    <div className="rounded-sm shadow-sm">
+      <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-12 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
+        {volume}%
+        <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
+      </div>
+    </div>
+  )
+})
+
 // Main AudioMixer component
 export function AudioMixer() {
   const {
@@ -622,7 +672,6 @@ export function AudioMixer() {
 
   return (
     <div className="relative mx-auto max-w-4xl">
-      {/* Updated drop shadow for dark mode */}
       <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/90 blur-xl dark:bg-black/30" />
       <div
         suppressHydrationWarning
@@ -632,17 +681,7 @@ export function AudioMixer() {
           J3-C7
         </div>
 
-        {/* Digital Display */}
-
-        <div className="absolute top-4 right-4 rounded-sm shadow-sm">
-          <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
-            <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-orange-500/50 shadow-sm" />
-            <div className="flex w-[60px] items-center justify-center">
-              <Waveform isPlaying={isPlaying} />
-            </div>
-            <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
-          </div>
-        </div>
+        <DisplayPanel isPlaying={isPlaying} />
 
         <div className="mt-12 flex gap-6">
           {/* Track controls */}
@@ -662,46 +701,12 @@ export function AudioMixer() {
 
           {/* Play Button and Master Volume */}
           <div className="flex flex-col items-center gap-4">
-            <div className="relative rounded-full bg-gradient-to-b from-neutral-400/80 to-neutral-300 p-1 dark:from-neutral-700 dark:to-neutral-800">
-              <div className="rounded-full border-[0.5px] border-neutral-500">
-                <button
-                  type="button"
-                  onClick={togglePlayback}
-                  suppressHydrationWarning
-                  className={cn(
-                    "group flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-neutral-400 p-0.5 transition",
-                    isPlaying
-                      ? "scale-96 shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)] active:scale-93"
-                      : "scale-100 shadow-[0_4px_6px_0px_rgba(0,0,0,0.4)] active:scale-94 active:shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)]",
-                  )}
-                >
-                  <div className="rounded-full border-[0.5px] border-neutral-300/80">
-                    <div className="flex h-12 w-12 items-start justify-center overflow-hidden rounded-full border-neutral-300/50 bg-gradient-to-b from-neutral-500/70 to-neutral-200 pt-2">
-                      <div
-                        className={cn(
-                          "h-2 w-1 rounded-full border-[0.2px] transition",
-                          isPlaying
-                            ? "border-transparent bg-orange-500 shadow shadow-orange-500/50"
-                            : "border-neutral-50/50 bg-neutral-700",
-                        )}
-                      />
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
+            <PlayButton isPlaying={isPlaying} onClick={togglePlayback} />
 
             {/* Master Volume Control */}
             <div className="flex flex-col items-center gap-2">
               <MasterKnob value={masterVolume} onChange={setMasterVolume} />
-
-              {/* Volume percentage indicator */}
-              <div className="rounded-sm shadow-sm">
-                <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-12 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
-                  {masterVolume}%
-                  <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
-                </div>
-              </div>
+              <VolumeDisplay volume={masterVolume} />
             </div>
           </div>
         </div>
