@@ -329,23 +329,51 @@ const EQKnob = memo(function EQKnob({
       <div
         ref={knobRef}
         suppressHydrationWarning
-        className="relative h-6 w-6 cursor-pointer rounded-full border-2 border-neutral-100 bg-gradient-to-b from-neutral-200 to-neutral-300 shadow-md after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),inset_0_-1px_2px_rgba(0,0,0,0.1)] after:content-[''] dark:border-neutral-600 dark:from-neutral-700 dark:to-neutral-800 dark:after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),inset_0_-1px_2px_rgba(0,0,0,0.2)]"
+        className="relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_6px_6px_rgba(0,0,0,0.4)]"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
-        >
-          {/* Position indicator dot */}
-          <div className="-translate-x-1/2 absolute top-0 left-1/2 h-1 w-1 transform rounded-full bg-black dark:bg-white" />
+        <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
+          >
+            {/* Position indicator dot */}
+            <div className="-translate-x-1/2 absolute top-1 left-1/2 h-1 w-1 transform rounded-full bg-neutral-600 dark:bg-white" />
+            {Array.from({ length: 30 }).map((_, i) => (
+              <div
+                key={i}
+                className="-z-[1] bg-neutral-300"
+                style={{
+                  transform: `rotate(${i * 12}deg) translateY(-12px)`,
+                  position: "absolute",
+                  top: "45%",
+                  left: "45%",
+                  transformOrigin: "center",
+                  width: "2px",
+                  height: "2px",
+                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
   )
 })
+// //.serration {
+//     position: absolute;
+//     top: 50%;
+//     left: 50%;
+//     width: 12px;
+//     height: 12px;
+//     background-color: #222;
+//     transform-origin: center;
+//     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+//   }
 
 // Master Volume Knob component
 const MasterKnob = memo(function MasterKnob({
@@ -548,6 +576,7 @@ export function AudioMixer() {
             <div className="flex w-[60px] items-center justify-center">
               <Waveform isPlaying={isPlaying} />
             </div>
+            <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
           </div>
         </div>
 
