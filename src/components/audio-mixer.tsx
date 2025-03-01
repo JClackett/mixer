@@ -23,6 +23,8 @@ type AudioNodes = {
   mid: BiquadFilterNode | null
   low: BiquadFilterNode | null
   gain: GainNode | null
+  buffer?: AudioBuffer | null
+  bufferSource?: AudioBufferSourceNode | null
 }
 
 // Move constants outside component to prevent recreation on each render
@@ -91,6 +93,8 @@ function useAudioEngine() {
           mid: null,
           low: null,
           gain: null,
+          buffer: null,
+          bufferSource: null,
         }))
 
         // Load and configure all tracks in parallel
@@ -102,8 +106,13 @@ function useAudioEngine() {
             audio.loop = true
             audio.preload = "auto"
 
-            // Preload audio
+            // Preload audio and fetch as buffer for seamless looping
             await audio.load()
+
+            // Fetch the audio file as an ArrayBuffer for seamless looping
+            const response = await fetch(track.url)
+            const arrayBuffer = await response.arrayBuffer()
+            const audioBuffer = await audioContextRef.current!.decodeAudioData(arrayBuffer)
 
             // Set up Web Audio API nodes
             const source = audioContextRef.current!.createMediaElementSource(audio)
@@ -126,20 +135,25 @@ function useAudioEngine() {
             // Apply the gain boost to normalize volume differences between tracks
             gainNode.gain.value = (initialTrackVolumesRef.current[i] / 100) * track.gainBoost
 
-            // Connect nodes to master gain
-            source.connect(highEQ)
-            highEQ.connect(midEQ)
-            midEQ.connect(lowEQ)
-            lowEQ.connect(gainNode)
-            if (masterGainRef.current) gainNode.connect(masterGainRef.current)
-
+            // Store the nodes for later use
             eqNodesRef.current[i] = {
               source,
               high: highEQ,
               mid: midEQ,
               low: lowEQ,
               gain: gainNode,
+              buffer: audioBuffer,
+              bufferSource: null, // Will be created when playback starts
             }
+
+            // Note: We don't connect the source node from the HTML Audio element
+            // since we'll be using the buffer source node for playback instead
+
+            // Connect the EQ chain
+            highEQ.connect(midEQ)
+            midEQ.connect(lowEQ)
+            lowEQ.connect(gainNode)
+            gainNode.connect(masterGainRef.current!)
           }),
         )
       } catch (error) {
@@ -156,6 +170,17 @@ function useAudioEngine() {
         if (audio) {
           audio.pause()
           audio.src = ""
+        }
+      }
+
+      // Stop all buffer sources
+      for (const nodes of eqNodesRef.current) {
+        if (nodes.bufferSource) {
+          try {
+            nodes.bufferSource.stop()
+          } catch {
+            // Ignore errors if already stopped
+          }
         }
       }
 
@@ -242,23 +267,53 @@ function useAudioEngine() {
       }
 
       if (isPlaying) {
+        // Stop all audio
         for (const audio of audioRefs.current) {
           if (audio) audio.pause()
         }
+
+        // Stop all buffer sources
+        for (const nodes of eqNodesRef.current) {
+          if (nodes.bufferSource) {
+            try {
+              nodes.bufferSource.stop()
+            } catch {
+              // Ignore errors if already stopped
+            }
+          }
+        }
       } else {
-        await Promise.all(
-          audioRefs.current.map((audio) => {
-            if (audio) return audio.play().catch((err) => console.error("Play error:", err))
-            return Promise.resolve()
-          }),
-        )
+        // Start playback using buffer sources for seamless looping
+        for (let index = 0; index < eqNodesRef.current.length; index++) {
+          const nodes = eqNodesRef.current[index]
+          if (nodes.buffer) {
+            // Create a new buffer source for each playback
+            const bufferSource = audioContextRef.current!.createBufferSource()
+            bufferSource.buffer = nodes.buffer
+            bufferSource.loop = true
+
+            // Connect the buffer source to the EQ chain
+            bufferSource.connect(nodes.high!)
+
+            // Update the reference
+            nodes.bufferSource = bufferSource
+
+            // Apply current volume settings
+            if (nodes.gain) {
+              nodes.gain.gain.value = muted[index] ? 0 : (volumes[index] / 100) * TRACKS[index].gainBoost
+            }
+
+            // Start playback
+            bufferSource.start(0)
+          }
+        }
       }
 
       setIsPlaying(!isPlaying)
     } catch (error) {
       console.error("Error toggling playback:", error)
     }
-  }, [isPlaying])
+  }, [isPlaying, volumes, muted])
 
   return {
     isPlaying,
@@ -365,16 +420,6 @@ const EQKnob = memo(function EQKnob({
     </div>
   )
 })
-// //.serration {
-//     position: absolute;
-//     top: 50%;
-//     left: 50%;
-//     width: 12px;
-//     height: 12px;
-//     background-color: #222;
-//     transform-origin: center;
-//     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-//   }
 
 // Master Volume Knob component
 const MasterKnob = memo(function MasterKnob({
