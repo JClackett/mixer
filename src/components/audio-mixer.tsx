@@ -376,12 +376,18 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
     }
   }, [])
 
+  const handleDoubleClick = useCallback(() => {
+    // Reset to 50% on double click
+    onChange(50)
+  }, [onChange])
+
   return {
     knobRef,
     rotationDegrees,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    handleDoubleClick,
   }
 }
 
@@ -404,7 +410,10 @@ const EQKnob = memo(function EQKnob({
     [onChange, trackIndex, band],
   )
 
-  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp } = useKnob(value, handleChange)
+  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp, handleDoubleClick } = useKnob(
+    value,
+    handleChange,
+  )
 
   return (
     <div className="group relative">
@@ -416,6 +425,7 @@ const EQKnob = memo(function EQKnob({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onDoubleClick={handleDoubleClick}
       >
         <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 dark:border-neutral-700">
           <div
@@ -456,7 +466,10 @@ const MasterKnob = memo(function MasterKnob({
   value: number
   onChange: (value: number) => void
 }) {
-  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp } = useKnob(value, onChange)
+  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp, handleDoubleClick } = useKnob(
+    value,
+    onChange,
+  )
 
   return (
     <div className="group relative">
@@ -468,6 +481,7 @@ const MasterKnob = memo(function MasterKnob({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onDoubleClick={handleDoubleClick}
       >
         <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 p-1">
           <div
