@@ -28,7 +28,14 @@
         "useSemanticElements": "off"
       },
       "nursery": {
-        "useSortedClasses": "off"
+        "useSortedClasses": {
+          "level": "warn",
+          "options": {
+            "attributes": ["className"],
+            "functions": ["cn", "classNames"]
+          },
+          "fix": "safe"
+        }
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"
