@@ -387,7 +387,7 @@ const MasterKnob = memo(function MasterKnob({
   const startYRef = useRef<number>(0)
   const startValueRef = useRef<number>(0)
   const isDraggingRef = useRef(false)
-  const rotationDegrees = useMemo(() => (value - 50) * 3.6 - 90, [value])
+  const rotationDegrees = useMemo(() => (value - 50) * 2.7, [value])
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -422,23 +422,41 @@ const MasterKnob = memo(function MasterKnob({
   }, [])
 
   return (
-    <div
-      ref={knobRef}
-      suppressHydrationWarning
-      className="relative h-16 w-16 cursor-pointer rounded-full border-4 border-neutral-100 bg-gradient-to-b from-neutral-200 to-neutral-300 shadow-[0_6px_12px_rgba(0,0,0,0.15)] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)] after:content-[''] dark:border-neutral-600 dark:from-neutral-700 dark:to-neutral-800 dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-    >
+    <div className="group relative">
       <div
-        className="absolute inset-0 z-10 rounded-full"
-        style={{
-          transform: `rotate(${rotationDegrees}deg)`,
-          touchAction: "none",
-        }}
+        ref={knobRef}
+        suppressHydrationWarning
+        className="relative h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_6px_6px_rgba(0,0,0,0.4)]"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
       >
-        <div className="-right-1 -translate-y-1/2 absolute top-1/2 h-2 w-2 transform rounded-full bg-orange-500" />
+        <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 p-1">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
+          >
+            {/* Position indicator dot */}
+            <div className="-translate-x-1/2 absolute top-1.5 left-1/2 h-1 w-1 transform rounded-full bg-neutral-600 shadow-sm" />
+            {Array.from({ length: 60 }).map((_, i) => (
+              <div
+                key={i}
+                className="-z-[1] bg-neutral-300"
+                style={{
+                  transform: `rotate(${i * 6}deg) translateY(-24px)`,
+                  position: "absolute",
+                  top: "21.5px",
+                  left: "47%",
+                  transformOrigin: "center",
+                  width: "3px",
+                  height: "3px",
+                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -559,12 +577,12 @@ export function AudioMixer() {
   return (
     <div className="relative mx-auto max-w-4xl">
       {/* Updated drop shadow for dark mode */}
-      <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/10 blur-xl dark:bg-black/30" />
+      <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/90 blur-xl dark:bg-black/30" />
       <div
         suppressHydrationWarning
-        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-[0.98] transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] dark:from-neutral-800 dark:to-neutral-900 dark:after:border-neutral-600 dark:after:bg-neutral-700 dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]"
+        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-120 transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-400 p-8 shadow-[0_20px_25px_rgba(0,0,0,0.2),0_2px_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] dark:from-neutral-800 dark:to-neutral-900 dark:after:border-neutral-600 dark:after:bg-neutral-700 dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]"
       >
-        <div className="absolute top-4 left-4 font-medium text-neutral-800 text-sm tracking-wider dark:text-neutral-400">
+        <div className="absolute top-4 left-4 font-medium text-neutral-500 text-sm tracking-wider dark:text-neutral-400">
           J3-C7
         </div>
 
@@ -610,13 +628,6 @@ export function AudioMixer() {
                       ? "scale-96 shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)] active:scale-93"
                       : "scale-100 shadow-[0_4px_6px_0px_rgba(0,0,0,0.4)] active:scale-94 active:shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)]",
                   )}
-                  // className={cn(
-                  //   `w-12 h-12 bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 rounded-full border-4 border-neutral-100 dark:border-neutral-600 flex items-center justify-center
-                  //     shadow-[0_4px_8px_rgba(0,0,0,0.2)] transform transition-transform active:scale-95 active:shadow-[0_2px_4px_rgba(0,0,0,0.2)]
-                  //     after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.7),inset_0_-2px_3px_rgba(0,0,0,0.1)]
-                  //     dark:after:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_3px_rgba(0,0,0,0.2)]`,
-                  //   isPlaying && "scale-95",
-                  // )}
                 >
                   <div className="rounded-full border-[0.5px] border-neutral-300/80">
                     <div className="flex h-12 w-12 items-start justify-center overflow-hidden rounded-full border-neutral-300/50 bg-gradient-to-b from-neutral-500/70 to-neutral-200 pt-2">
@@ -635,12 +646,15 @@ export function AudioMixer() {
             </div>
 
             {/* Master Volume Control */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center gap-2">
               <MasterKnob value={masterVolume} onChange={setMasterVolume} />
 
               {/* Volume percentage indicator */}
-              <div className="mt-1 w-12 rounded-sm bg-neutral-200 px-2 py-0.5 text-center font-mono text-[10px] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                {masterVolume}%
+              <div className="rounded-sm shadow-sm">
+                <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-12 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100">
+                  {masterVolume}%
+                  <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
+                </div>
               </div>
             </div>
           </div>
