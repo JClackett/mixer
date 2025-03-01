@@ -495,14 +495,18 @@ const Waveform = memo(function Waveform({ isPlaying }: { isPlaying: boolean }) {
   }, [isPlaying])
 
   if (!isPlaying) {
-    return <span className="w-full text-center">STOPPED</span>
+    return (
+      <span className="w-full text-center" style={{ textShadow: "rgba(255,255,255,0.5) 0px 0 1px" }}>
+        STOPPED
+      </span>
+    )
   }
 
   return (
     <div className="flex items-center justify-center">
       <div className="flex h-2 items-end gap-[1px]">
         {waveformHeights.map((height, i) => (
-          <div key={i} className="w-[2px] bg-orange-500" style={{ height: `${height}px` }} />
+          <div key={i} className="w-[2px] bg-orange-500 shadow-orange-500/50 shadow-xs" style={{ height: `${height}px` }} />
         ))}
       </div>
     </div>
@@ -540,7 +544,7 @@ export function AudioMixer() {
 
         <div className="absolute top-4 right-4 rounded-sm shadow-sm">
           <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100">
-            <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+            <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-orange-500/50 shadow-sm" />
             <div className="flex w-[60px] items-center justify-center">
               <Waveform isPlaying={isPlaying} />
             </div>
