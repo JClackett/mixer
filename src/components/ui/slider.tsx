@@ -10,26 +10,16 @@ const Slider = React.forwardRef<
 >(({ className, orientation, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
-    className={cn(
-      "relative flex touch-none select-none",
-      orientation === "vertical" ? "items-center justify-center h-full" : "items-center w-full",
-      className,
-    )}
+    className={cn("flex h-full w-full touch-none select-none items-center justify-center", className)}
     orientation={orientation}
     {...props}
   >
-    <SliderPrimitive.Track
-      className={cn(
-        "relative overflow-hidden bg-black",
-        orientation === "vertical" ? "h-full w-4 rounded-full" : "w-full h-4 rounded-full",
-      )}
-    >
-      <SliderPrimitive.Range className={cn("absolute ", orientation === "vertical" ? "w-full" : "h-full")} />
+    <SliderPrimitive.Track className={cn("relative h-full w-full")}>
+      <SliderPrimitive.Range className={cn("absolute w-full")} />
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
       className={cn(
-        "block bg-neutral-200 ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-md border",
-        orientation === "vertical" ? "h-3 w-3 rounded-full" : "w-3 h-full rounded-full",
+        "block h-4 w-2.5 rounded-full border-[0.8px] border-neutral-200/60 bg-gradient-to-b from-neutral-400 to-neutral-200 shadow-[0px_2px_4px_rgba(0,0,0,1)] ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:pointer-events-none",
       )}
     />
   </SliderPrimitive.Root>

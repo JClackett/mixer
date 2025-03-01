@@ -7,7 +7,7 @@ import type React from "react"
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 // Define types for better type safety
-type Track = {
+type TrackType = {
   url: string
   label: string
   icon: React.ComponentType<{ className?: string }>
@@ -26,7 +26,7 @@ type AudioNodes = {
 }
 
 // Move constants outside component to prevent recreation on each render
-const TRACKS: Track[] = [
+const TRACKS: TrackType[] = [
   {
     url: "/birds.wav",
     label: "BIRDS",
@@ -337,10 +337,7 @@ const EQKnob = memo(function EQKnob({
       >
         <div
           className="absolute inset-0 rounded-full"
-          style={{
-            transform: `rotate(${rotationDegrees}deg)`,
-            touchAction: "none",
-          }}
+          style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
         >
           {/* Position indicator dot */}
           <div className="-translate-x-1/2 absolute top-0 left-1/2 h-1 w-1 transform rounded-full bg-black dark:bg-white" />
@@ -430,7 +427,7 @@ const Track = memo(function Track({
   onEQChange,
   onMuteToggle,
 }: {
-  track: Track
+  track: TrackType
   index: number
   volume: number
   isMuted: boolean
@@ -449,7 +446,7 @@ const Track = memo(function Track({
       ))}
 
       {/* Fader Track */}
-      <div className="relative mt-2 h-48 w-4 overflow-hidden rounded-full border border-neutral-700 bg-black shadow-[inset_0_0_4px_rgba(0,0,0,0.5)]">
+      <div className="relative mt-2 h-48 w-3 overflow-hidden rounded-full bg-gradient-to-b from-neutral-800/80 to-neutral-800/75 shadow-[inset_0px_2px_4px_rgba(0,0,0,1)]">
         <Slider
           value={[volume]}
           onValueChange={(value) => onVolumeChange(value, index)}
@@ -457,30 +454,26 @@ const Track = memo(function Track({
           min={0}
           max={100}
           step={1}
-          className="absolute inset-0 h-full [&_[role=slider]]:shadow-md"
         />
-
-        {/* Dotted indicators */}
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="absolute left-10 h-0.5 w-0.5 rounded-full bg-neutral-500" style={{ top: `${(i + 1) * 20}%` }} />
-        ))}
       </div>
 
       <Icon className="h-4 w-4 text-neutral-800 dark:text-neutral-200" />
 
       {/* Mute Button */}
-      <button
-        type="button"
-        onClick={() => onMuteToggle(index)}
-        className={cn(
-          "z-10 mt-2 flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full shadow-sm transition-colors",
-          isMuted
-            ? "bg-orange-500 text-white shadow-sm"
-            : "border border-neutral-400/70 dark:border-neutral-500/70 dark:text-neutral-300",
-        )}
-      >
-        <VolumeOffIcon size={12} />
-      </button>
+      <div className="mt-2 rounded-full border border-neutral-400/70 dark:border-neutral-500/70 dark:text-neutral-300">
+        <button
+          type="button"
+          onClick={() => onMuteToggle(index)}
+          className={cn(
+            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-200/50 bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-sm active:scale-96",
+          )}
+        >
+          <VolumeOffIcon
+            size={12}
+            className={isMuted ? "rounded-full bg-orange-500/10 text-orange-500" : "text-neutral-700 dark:text-neutral-200"}
+          />
+        </button>
+      </div>
     </div>
   )
 })
@@ -537,9 +530,9 @@ export function AudioMixer() {
       <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/10 blur-xl dark:bg-black/30" />
       <div
         suppressHydrationWarning
-        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-[0.98] transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)] before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] dark:from-neutral-800 dark:to-neutral-900 dark:after:border-neutral-600 dark:after:bg-neutral-700 dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]"
+        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-[0.98] transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-200 p-8 shadow-[0_10px_25px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] dark:from-neutral-800 dark:to-neutral-900 dark:after:border-neutral-600 dark:after:bg-neutral-700 dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]"
       >
-        <div className="absolute top-4 left-4 font-medium text-neutral-600 text-sm tracking-wider dark:text-neutral-400">
+        <div className="absolute top-4 left-4 font-medium text-neutral-800 text-sm tracking-wider dark:text-neutral-400">
           J3-C7
         </div>
 
@@ -551,7 +544,6 @@ export function AudioMixer() {
             <div className="flex w-[60px] items-center justify-center">
               <Waveform isPlaying={isPlaying} />
             </div>
-            {/* <div className="absolute inset-0 rounded-sm grid grid-cols-30" /> */}
           </div>
         </div>
 
