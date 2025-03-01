@@ -545,10 +545,13 @@ export function AudioMixer() {
 
         {/* Digital Display */}
 
-        <div className="absolute top-4 right-4 flex h-[24px] flex-row items-center justify-start rounded-sm border-[0.5px] border-neutral-300 bg-black pl-2 font-mono text-[10px] text-neutral-100">
-          <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-          <div className="flex w-[60px] items-center justify-center">
-            <Waveform isPlaying={isPlaying} />
+        <div className="absolute top-4 right-4 rounded-sm shadow-sm">
+          <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100">
+            <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+            <div className="flex w-[60px] items-center justify-center">
+              <Waveform isPlaying={isPlaying} />
+            </div>
+            {/* <div className="absolute inset-0 rounded-sm grid grid-cols-30" /> */}
           </div>
         </div>
 
