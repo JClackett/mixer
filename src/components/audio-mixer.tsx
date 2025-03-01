@@ -329,7 +329,7 @@ const EQKnob = memo(function EQKnob({
       <div
         ref={knobRef}
         suppressHydrationWarning
-        className="relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_6px_6px_rgba(0,0,0,0.4)] dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800"
+        className="relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-200 to-neutral-400/40 shadow-[0_6px_6px_rgba(0,0,0,0.4)] dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -427,7 +427,7 @@ const MasterKnob = memo(function MasterKnob({
       <div
         ref={knobRef}
         suppressHydrationWarning
-        className="relative h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_6px_6px_rgba(0,0,0,0.4)]"
+        className="relative h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_5px_10px_2px_rgba(0,0,0,0.4)]"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -507,12 +507,12 @@ const Track = memo(function Track({
       <Icon className="h-4 w-4 text-neutral-800 dark:text-neutral-200" />
 
       {/* Mute Button */}
-      <div className="mt-2 rounded-full border-[1px] border-neutral-400/70 dark:border-neutral-700 dark:text-neutral-300">
+      <div className="mt-2 rounded-full border-[1px] border-neutral-400/10 shadow-[0px_2px_3px_rgba(0,0,0,0.1)] dark:border-neutral-700 dark:text-neutral-300">
         <button
           type="button"
           onClick={() => onMuteToggle(index)}
           className={cn(
-            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-200/50 bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-sm active:scale-96 dark:border-neutral-500/70 dark:from-neutral-600 dark:to-neutral-800/60",
+            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-200/50 bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-sm active:scale-94 dark:border-neutral-500/70 dark:from-neutral-600 dark:to-neutral-800/60",
           )}
         >
           <VolumeOffIcon
