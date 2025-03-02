@@ -555,7 +555,7 @@ const EQKnob = memo(function EQKnob({
       ref={knobRef}
       suppressHydrationWarning
       className={cn(
-        "relative h-6 w-6 cursor-pointer rounded-full border-neutral-100 border-t-[1px] bg-gradient-to-b from-neutral-300 to-neutral-300/20 shadow-[0px_8px_6px_rgba(0,0,0,0.5)] transition-all dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800",
+        "relative h-6 w-6 cursor-pointer rounded-full border-neutral-100 border-t-[1px] bg-gradient-to-b from-neutral-300 to-neutral-300/20 shadow-[0px_8px_6px_rgba(0,0,0,0.5)] transition-all",
       )}
       style={{ touchAction: "none" }}
       onPointerDown={handlePointerDown}
@@ -567,20 +567,20 @@ const EQKnob = memo(function EQKnob({
       onTouchEnd={handleTouchEnd}
       onDoubleClick={handleDoubleClick}
     >
-      <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 dark:border-neutral-700">
+      <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50">
         {/* Position indicator dot */}
-        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-2.5 w-2.5 transform rounded-full bg-gradient-to-b from-neutral-800 to-neutral-500 dark:bg-neutral-200" />
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-2.5 w-2.5 transform rounded-full bg-gradient-to-b from-neutral-800 to-neutral-500" />
 
         {/* Position indicator line */}
         <div
           className="absolute inset-0 rounded-full"
           style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
         >
-          <div className="-translate-x-1/2 -top-[0.7px] absolute left-1/2 h-[8px] w-[3px] transform rounded-t-[0.5px] rounded-b-[0.5px] bg-neutral-700 dark:from-neutral-200 dark:to-neutral-600" />
+          <div className="-translate-x-1/2 -top-[0.7px] absolute left-1/2 h-[8px] w-[3px] transform rounded-t-[0.5px] rounded-b-[0.5px] bg-neutral-700" />
           {/* {Array.from({ length: 30 }).map((_, i) => (
             <div
               key={i}
-              className="-z-[1] bg-neutral-300 dark:bg-neutral-800"
+              className="-z-[1] bg-neutral-300"
               style={{
                 transform: `rotate(${i * 12}deg) translateY(-12px)`,
                 position: "absolute",
@@ -621,47 +621,46 @@ const MasterKnob = memo(function MasterKnob({
   } = useKnob(value, onChange)
 
   return (
-    <div className="group relative">
-      <div
-        ref={knobRef}
-        suppressHydrationWarning
-        className={cn(
-          "relative h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_5px_10px_2px_rgba(0,0,0,0.4)] transition-all",
-        )}
-        style={{ touchAction: "none" }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerCancel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onDoubleClick={handleDoubleClick}
-      >
-        <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 p-1">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
-          >
-            {/* Position indicator dot */}
-            <div className="-translate-x-1/2 absolute top-1.5 left-1/2 h-1 w-1 transform rounded-full bg-neutral-600 shadow-sm" />
-            {Array.from({ length: 60 }).map((_, i) => (
-              <div
-                key={i}
-                className="-z-[1] bg-neutral-300"
-                style={{
-                  transform: `rotate(${i * 6}deg) translateY(-24px)`,
-                  position: "absolute",
-                  top: "21.5px",
-                  left: "47%",
-                  transformOrigin: "center",
-                  width: "3px",
-                  height: "3px",
-                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-                }}
-              />
-            ))}
-          </div>
+    <div
+      ref={knobRef}
+      suppressHydrationWarning
+      className={cn(
+        "relative z-[10] h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_10px_12px_0px_rgba(0,0,0,0.7)] transition-all",
+      )}
+      style={{ touchAction: "none" }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onDoubleClick={handleDoubleClick}
+    >
+      <div className="h-full w-full rounded-full border-[0.5px] border-neutral-200">
+        {/* <div className="absolute inset-0 rounded-full bg-gradient-to-b from-neutral-300 to-neutral-400" /> */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
+        >
+          {/* Position indicator dot */}
+          <div className="-translate-x-1/2 absolute top-1.5 left-1/2 z-10 h-1 w-1 transform rounded-full bg-neutral-700 shadow-sm" />
+          {Array.from({ length: 60 }).map((_, i) => (
+            <div
+              key={i}
+              className="-z-[1] bg-neutral-300"
+              style={{
+                transform: `rotate(${i * 6}deg) translateY(-24px)`,
+                position: "absolute",
+                top: "22px",
+                left: "47%",
+                transformOrigin: "center",
+                width: "3px",
+                height: "2px",
+                clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+              }}
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -711,19 +710,19 @@ const Track = memo(function Track({
         </div>
       </div>
 
-      <Icon className="h-4 w-4 text-neutral-800 dark:text-neutral-200" />
+      <Icon className="h-4 w-4 text-neutral-800" />
 
       {/* Mute Button */}
-      <div className="mt-2 rounded-full border-[1px] border-neutral-400 dark:border-neutral-700 dark:text-neutral-300">
+      <div className="mt-2 rounded-full border-[1px] border-neutral-400">
         <button
           type="button"
           onClick={() => onMuteToggle(index)}
           className={cn(
-            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-neutral-200 border-t-[0.5px] bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-[0px_3px_3px_rgba(0,0,0,0.2)] active:scale-94 dark:border-neutral-500/70 dark:from-neutral-600 dark:to-neutral-800/60",
+            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-neutral-200 border-t-[0.5px] bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-[0px_3px_3px_rgba(0,0,0,0.2)] active:scale-94",
           )}
         >
           <div className={cn("rounded-full p-0.5", isMuted && "bg-orange-500/10 text-orange-500")}>
-            <VolumeOffIcon size={12} className={isMuted ? "text-orange-500" : "text-neutral-700 dark:text-neutral-400"} />
+            <VolumeOffIcon size={12} className={isMuted ? "text-orange-500" : "text-neutral-700"} />
           </div>
         </button>
       </div>
@@ -770,7 +769,7 @@ const Waveform = memo(function Waveform({ isPlaying }: { isPlaying: boolean }) {
 const DisplayPanel = memo(function DisplayPanel({ isPlaying }: { isPlaying: boolean }) {
   return (
     <div className="absolute top-4 right-4 rounded-sm shadow-sm">
-      <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
+      <div className="relative inset-shadow-black inset-shadow-xs flex h-[24px] flex-row items-center justify-start rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 pl-2 font-mono text-[10px] text-neutral-100">
         <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-orange-500/50 shadow-sm" />
         <div className="flex w-[60px] items-center justify-center">
           <Waveform isPlaying={isPlaying} />
@@ -807,7 +806,7 @@ const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying:
   }, [onClick])
 
   return (
-    <div className="relative rounded-full bg-gradient-to-b from-neutral-400/80 to-neutral-300 p-1 dark:from-neutral-700 dark:to-neutral-800">
+    <div className="relative rounded-full bg-gradient-to-b from-neutral-400/80 to-neutral-300 p-1">
       <div className={cn("rounded-full border-[0.5px] border-neutral-500")}>
         <button
           type="button"
@@ -841,7 +840,7 @@ const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying:
 const VolumeDisplay = memo(function VolumeDisplay({ volume }: { volume: number }) {
   return (
     <div className="rounded-sm shadow-sm">
-      <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-12 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100 dark:border-neutral-700">
+      <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-8 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100">
         {volume}%
         <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
       </div>
@@ -895,14 +894,12 @@ export function AudioMixer() {
 
   return (
     <div className="relative p-4">
-      <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/30 blur-xl dark:bg-black/30" />
+      <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/30 blur-xl" />
       <div
         suppressHydrationWarning
-        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-120 transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-400 p-8 shadow-[0_20px_25px_rgba(0,0,0,0.2),0_2px_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] dark:from-neutral-800 dark:to-neutral-900 dark:after:border-neutral-600 dark:after:bg-neutral-700 dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]"
+        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-120 transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-400 p-8 shadow-[0_20px_25px_rgba(0,0,0,0.2),0_2px_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-['']"
       >
-        <div className="absolute top-4 left-4 font-medium text-neutral-500 text-sm tracking-wider dark:text-neutral-400">
-          J3-C7
-        </div>
+        <div className="absolute top-4 left-4 font-medium text-neutral-500 text-sm tracking-wider">J3-C7</div>
         <DisplayPanel isPlaying={isPlaying} />
         <div className="mt-12 flex gap-6">
           {/* Track controls */}
