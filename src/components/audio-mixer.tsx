@@ -898,7 +898,7 @@ export function AudioMixer() {
   }, [])
 
   return (
-    <div className="relative mx-auto max-w-4xl">
+    <div className="relative mx-auto max-w-4xl px-4">
       <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/90 blur-xl dark:bg-black/30" />
       <div
         suppressHydrationWarning
