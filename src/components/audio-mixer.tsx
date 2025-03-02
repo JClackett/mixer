@@ -84,24 +84,32 @@ function useAudioEngine() {
     TRACKS.map(() => ({ HIGH: DEFAULT_VOLUME, MID: DEFAULT_VOLUME, LOW: DEFAULT_VOLUME })),
   )
   const [masterVolume, setMasterVolume] = useState(DEFAULT_VOLUME)
+  const [isIOSDevice, setIsIOSDevice] = useState(false)
 
   const audioRefs = useRef<(HTMLAudioElement | null)[]>([])
   const audioContextRef = useRef<AudioContext | null>(null)
   const eqNodesRef = useRef<AudioNodes[]>([])
   const masterGainRef = useRef<GainNode | null>(null)
   const initialTrackVolumesRef = useRef<number[]>(new Array(TRACKS.length).fill(DEFAULT_VOLUME))
+  const audioInitializedRef = useRef(false)
 
   // Initialize audio engine
   useEffect(() => {
+    // Check if running on iOS
+    const iosDevice = isIOS()
+    setIsIOSDevice(iosDevice)
+
     const initAudio = async () => {
       try {
-        audioContextRef.current = new AudioContext()
+        // Create audio context
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
 
         // Create master gain node
         masterGainRef.current = audioContextRef.current.createGain()
         masterGainRef.current.gain.value = INITIAL_MASTER_VOLUME / 100
         masterGainRef.current.connect(audioContextRef.current.destination)
 
+        // Create audio elements
         audioRefs.current = TRACKS.map(() => new Audio())
         eqNodesRef.current = TRACKS.map(() => ({
           source: null,
@@ -122,13 +130,8 @@ function useAudioEngine() {
             audio.loop = true
             audio.preload = "auto"
 
-            // Preload audio and fetch as buffer for seamless looping
+            // Preload audio
             await audio.load()
-
-            // Fetch the audio file as an ArrayBuffer for seamless looping
-            const response = await fetch(track.url)
-            const arrayBuffer = await response.arrayBuffer()
-            const audioBuffer = await audioContextRef.current!.decodeAudioData(arrayBuffer)
 
             // Set up Web Audio API nodes
             const source = audioContextRef.current!.createMediaElementSource(audio)
@@ -158,20 +161,32 @@ function useAudioEngine() {
               mid: midEQ,
               low: lowEQ,
               gain: gainNode,
-              buffer: audioBuffer,
-              bufferSource: null, // Will be created when playback starts
+              buffer: null,
+              bufferSource: null,
             }
 
-            // Note: We don't connect the source node from the HTML Audio element
-            // since we'll be using the buffer source node for playback instead
-
-            // Connect the EQ chain
+            // Connect the audio nodes
+            source.connect(highEQ)
             highEQ.connect(midEQ)
             midEQ.connect(lowEQ)
             lowEQ.connect(gainNode)
             gainNode.connect(masterGainRef.current!)
+
+            // For non-iOS devices, also fetch the buffer for seamless looping
+            if (!iosDevice) {
+              try {
+                const response = await fetch(track.url)
+                const arrayBuffer = await response.arrayBuffer()
+                const audioBuffer = await audioContextRef.current!.decodeAudioData(arrayBuffer)
+                eqNodesRef.current[i].buffer = audioBuffer
+              } catch (error) {
+                console.error(`Failed to load buffer for track ${i}:`, error)
+              }
+            }
           }),
         )
+
+        audioInitializedRef.current = true
       } catch (error) {
         console.error("Failed to initialize audio engine:", error)
       }
@@ -278,6 +293,7 @@ function useAudioEngine() {
   // Toggle playback for all tracks
   const togglePlayback = useCallback(async () => {
     try {
+      // Make sure audio context is running (important for iOS)
       if (audioContextRef.current?.state === "suspended") {
         await audioContextRef.current.resume()
       }
@@ -296,31 +312,68 @@ function useAudioEngine() {
             } catch {
               // Ignore errors if already stopped
             }
+            nodes.bufferSource = null
           }
         }
       } else {
-        // Start playback using buffer sources for seamless looping
-        for (let index = 0; index < eqNodesRef.current.length; index++) {
-          const nodes = eqNodesRef.current[index]
-          if (nodes.buffer) {
-            // Create a new buffer source for each playback
-            const bufferSource = audioContextRef.current!.createBufferSource()
-            bufferSource.buffer = nodes.buffer
-            bufferSource.loop = true
+        // For iOS, use HTML Audio elements
+        if (isIOSDevice) {
+          for (let index = 0; index < audioRefs.current.length; index++) {
+            const audio = audioRefs.current[index]
+            if (audio) {
+              // Reset the audio to the beginning
+              audio.currentTime = 0
 
-            // Connect the buffer source to the EQ chain
-            bufferSource.connect(nodes.high!)
+              // Apply volume settings
+              if (eqNodesRef.current[index]?.gain) {
+                eqNodesRef.current[index].gain!.gain.value = muted[index] ? 0 : (volumes[index] / 100) * TRACKS[index].gainBoost
+              }
 
-            // Update the reference
-            nodes.bufferSource = bufferSource
-
-            // Apply current volume settings
-            if (nodes.gain) {
-              nodes.gain.gain.value = muted[index] ? 0 : (volumes[index] / 100) * TRACKS[index].gainBoost
+              // Start playback
+              const playPromise = audio.play()
+              if (playPromise !== undefined) {
+                playPromise.catch((error) => {
+                  console.error("Error playing audio:", error)
+                })
+              }
             }
+          }
+        } else {
+          // For other platforms, use buffer sources for seamless looping
+          for (let index = 0; index < eqNodesRef.current.length; index++) {
+            const nodes = eqNodesRef.current[index]
+            if (nodes.buffer) {
+              // Create a new buffer source for each playback
+              const bufferSource = audioContextRef.current!.createBufferSource()
+              bufferSource.buffer = nodes.buffer
+              bufferSource.loop = true
 
-            // Start playback
-            bufferSource.start(0)
+              // Connect the buffer source to the EQ chain
+              bufferSource.connect(nodes.high!)
+
+              // Update the reference
+              nodes.bufferSource = bufferSource
+
+              // Apply current volume settings
+              if (nodes.gain) {
+                nodes.gain.gain.value = muted[index] ? 0 : (volumes[index] / 100) * TRACKS[index].gainBoost
+              }
+
+              // Start playback
+              bufferSource.start(0)
+            } else {
+              // Fallback to HTML Audio if buffer is not available
+              const audio = audioRefs.current[index]
+              if (audio) {
+                audio.currentTime = 0
+                const playPromise = audio.play()
+                if (playPromise !== undefined) {
+                  playPromise.catch((error) => {
+                    console.error("Error playing audio:", error)
+                  })
+                }
+              }
+            }
           }
         }
       }
@@ -329,7 +382,7 @@ function useAudioEngine() {
     } catch (error) {
       console.error("Error toggling playback:", error)
     }
-  }, [isPlaying, volumes, muted])
+  }, [isPlaying, volumes, muted, isIOSDevice])
 
   return {
     isPlaying,
@@ -727,13 +780,37 @@ const DisplayPanel = memo(function DisplayPanel({ isPlaying }: { isPlaying: bool
   )
 })
 
+// PlayButton component
 const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying: boolean; onClick: () => void }) {
+  // Handle click with iOS audio context initialization
+  const handleClick = useCallback(() => {
+    // iOS requires audio context to be created or resumed during a user interaction
+    if (isIOS() && window.AudioContext) {
+      // Try to resume any existing audio context
+      const tempContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      tempContext
+        .resume()
+        .then(() => {
+          // Close the temporary context after resuming
+          tempContext.close().catch(() => {
+            // Ignore errors on close
+          })
+        })
+        .catch(() => {
+          // Ignore errors on resume
+        })
+    }
+
+    // Call the original onClick handler
+    onClick()
+  }, [onClick])
+
   return (
     <div className="relative rounded-full bg-gradient-to-b from-neutral-400/80 to-neutral-300 p-1 dark:from-neutral-700 dark:to-neutral-800">
       <div className="rounded-full border-[0.5px] border-neutral-500">
         <button
           type="button"
-          onClick={onClick}
+          onClick={handleClick}
           suppressHydrationWarning
           className={cn(
             "group flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-neutral-400 p-0.5 transition",
@@ -786,14 +863,37 @@ export function AudioMixer() {
     togglePlayback,
   } = useAudioEngine()
 
-  // Add iOS detection on component mount
+  // Add iOS detection and audio context initialization on component mount
   useEffect(() => {
-    if (isIOS()) {
+    const iosDevice = isIOS()
+
+    if (iosDevice) {
       document.documentElement.classList.add("ios")
+
+      // For iOS, we need to create and resume the audio context during a user interaction
+      // This is handled in the PlayButton component
+
+      // Add a one-time touch event listener to the document to initialize audio
+      const initAudio = () => {
+        // This empty function just ensures iOS will allow audio later
+        const silentAudio = new Audio(
+          "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADmADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAYAAAAAAAAAAwCVzA1/AAAAAAAAAAAAAAAA",
+        )
+        silentAudio.volume = 0.001
+        silentAudio.play().catch(() => {
+          // Ignore errors
+        })
+
+        // Remove the event listener after first touch
+        document.removeEventListener("touchstart", initAudio)
+      }
+
+      document.addEventListener("touchstart", initAudio, { once: true })
     }
 
     return () => {
       document.documentElement.classList.remove("ios")
+      // No need to remove the event listener in cleanup as we use { once: true }
     }
   }, [])
 
