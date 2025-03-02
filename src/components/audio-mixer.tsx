@@ -27,6 +27,15 @@ type AudioNodes = {
   bufferSource?: AudioBufferSourceNode | null
 }
 
+// Utility function to detect iOS devices
+const isIOS = () => {
+  return (
+    ["iPad Simulator", "iPhone Simulator", "iPod Simulator", "iPad", "iPhone", "iPod"].includes(navigator.platform) ||
+    // iPad on iOS 13 detection
+    (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+  )
+}
+
 // Move constants outside component to prevent recreation on each render
 const TRACKS: TrackType[] = [
   {
@@ -342,17 +351,28 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const startYRef = useRef<number>(0)
   const startValueRef = useRef<number>(0)
   const isDraggingRef = useRef(false)
+  const [isActive, setIsActive] = useState(false)
   const rotationDegrees = useMemo(() => (initialValue - 50) * 2.7, [initialValue])
+
+  // Add a sensitivity factor that can be adjusted for mobile
+  const sensitivityFactor = 2.5 // Lower value = less sensitive
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       e.preventDefault()
       isDraggingRef.current = true
+      setIsActive(true)
       startYRef.current = e.clientY
       startValueRef.current = initialValue
 
       // Capture pointer to ensure smooth dragging
       knobRef.current?.setPointerCapture(e.pointerId)
+
+      // Ensure audio context is resumed on iOS
+      if (window.AudioContext && isIOS()) {
+        const tempContext = new AudioContext()
+        tempContext.resume().then(() => tempContext.close())
+      }
     },
     [initialValue],
   )
@@ -362,7 +382,12 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       if (!isDraggingRef.current) return
 
       const deltaY = startYRef.current - e.clientY
-      const newValue = Math.max(0, Math.min(100, startValueRef.current + deltaY / 2))
+
+      // Adjust sensitivity based on device type
+      const adjustedDelta = deltaY / sensitivityFactor
+
+      // Use a non-linear curve for more precise control
+      const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
 
       onChange(Math.round(newValue))
     },
@@ -372,6 +397,7 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false
+      setIsActive(false)
       knobRef.current?.releasePointerCapture(e.pointerId)
     }
   }, [])
@@ -381,13 +407,61 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
     onChange(50)
   }, [onChange])
 
+  // Add touch-specific handlers for better mobile experience
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 1) {
+        e.preventDefault()
+        isDraggingRef.current = true
+        setIsActive(true)
+        startYRef.current = e.touches[0].clientY
+        startValueRef.current = initialValue
+
+        // Ensure audio context is resumed on iOS
+        if (window.AudioContext && isIOS()) {
+          const tempContext = new AudioContext()
+          tempContext.resume().then(() => tempContext.close())
+        }
+      }
+    },
+    [initialValue],
+  )
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDraggingRef.current || e.touches.length !== 1) return
+
+      const deltaY = startYRef.current - e.touches[0].clientY
+
+      // Use a more conservative sensitivity for touch
+      const touchSensitivity = sensitivityFactor * 1.5
+      const adjustedDelta = deltaY / touchSensitivity
+
+      const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
+
+      onChange(Math.round(newValue))
+      e.preventDefault() // Prevent scrolling while adjusting
+    },
+    [onChange],
+  )
+
+  const handleTouchEnd = useCallback(() => {
+    isDraggingRef.current = false
+    setIsActive(false)
+  }, [])
+
   return {
     knobRef,
     rotationDegrees,
+    isActive,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    handlePointerCancel: handlePointerUp,
     handleDoubleClick,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
   }
 }
 
@@ -410,21 +484,35 @@ const EQKnob = memo(function EQKnob({
     [onChange, trackIndex, band],
   )
 
-  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp, handleDoubleClick } = useKnob(
-    value,
-    handleChange,
-  )
+  const {
+    knobRef,
+    rotationDegrees,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+    handleDoubleClick,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useKnob(value, handleChange)
 
   return (
     <div className="group relative">
       <div
         ref={knobRef}
         suppressHydrationWarning
-        className="relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-200 to-neutral-400/40 shadow-[0_6px_6px_rgba(0,0,0,0.4)] dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800"
+        className={cn(
+          "relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-200 to-neutral-400/40 shadow-[0_6px_6px_rgba(0,0,0,0.4)] transition-all dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800",
+        )}
+        style={{ touchAction: "none" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onDoubleClick={handleDoubleClick}
       >
         <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 dark:border-neutral-700">
@@ -466,21 +554,35 @@ const MasterKnob = memo(function MasterKnob({
   value: number
   onChange: (value: number) => void
 }) {
-  const { knobRef, rotationDegrees, handlePointerDown, handlePointerMove, handlePointerUp, handleDoubleClick } = useKnob(
-    value,
-    onChange,
-  )
+  const {
+    knobRef,
+    rotationDegrees,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+    handleDoubleClick,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useKnob(value, onChange)
 
   return (
     <div className="group relative">
       <div
         ref={knobRef}
         suppressHydrationWarning
-        className="relative h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_5px_10px_2px_rgba(0,0,0,0.4)]"
+        className={cn(
+          "relative h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_5px_10px_2px_rgba(0,0,0,0.4)] transition-all",
+        )}
+        style={{ touchAction: "none" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onDoubleClick={handleDoubleClick}
       >
         <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 p-1">
@@ -683,6 +785,17 @@ export function AudioMixer() {
     toggleMute,
     togglePlayback,
   } = useAudioEngine()
+
+  // Add iOS detection on component mount
+  useEffect(() => {
+    if (isIOS()) {
+      document.documentElement.classList.add("ios")
+    }
+
+    return () => {
+      document.documentElement.classList.remove("ios")
+    }
+  }, [])
 
   return (
     <div className="relative mx-auto max-w-4xl">
