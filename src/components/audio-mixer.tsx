@@ -551,48 +551,48 @@ const EQKnob = memo(function EQKnob({
   } = useKnob(value, handleChange)
 
   return (
-    <div className="group relative">
-      <div
-        ref={knobRef}
-        suppressHydrationWarning
-        className={cn(
-          "relative h-6 w-6 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-200 to-neutral-400/40 shadow-[0_6px_6px_rgba(0,0,0,0.4)] transition-all dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800",
-        )}
-        style={{ touchAction: "none" }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerCancel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onDoubleClick={handleDoubleClick}
-      >
-        <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 dark:border-neutral-700">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
-          >
-            {/* Position indicator dot */}
-            <div className="-translate-x-1/2 absolute top-1 left-1/2 h-1 w-1 transform rounded-full bg-neutral-600 dark:bg-neutral-200" />
+    <div
+      ref={knobRef}
+      suppressHydrationWarning
+      className={cn(
+        "relative h-6 w-6 cursor-pointer rounded-full border-neutral-100 border-t-[1px] bg-gradient-to-b from-neutral-300 to-neutral-300/20 shadow-[0px_8px_6px_rgba(0,0,0,0.5)] transition-all dark:border-neutral-800 dark:from-neutral-600 dark:to-neutral-800",
+      )}
+      style={{ touchAction: "none" }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onDoubleClick={handleDoubleClick}
+    >
+      <div className="h-full w-full rounded-full border-[1px] border-neutral-200/50 dark:border-neutral-700">
+        {/* Position indicator dot */}
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-2.5 w-2.5 transform rounded-full bg-gradient-to-b from-neutral-800 to-neutral-500 dark:bg-neutral-200" />
 
-            {Array.from({ length: 30 }).map((_, i) => (
-              <div
-                key={i}
-                className="-z-[1] bg-neutral-300 dark:bg-neutral-800"
-                style={{
-                  transform: `rotate(${i * 12}deg) translateY(-12px)`,
-                  position: "absolute",
-                  top: "45%",
-                  left: "45%",
-                  transformOrigin: "center",
-                  width: "2px",
-                  height: "2px",
-                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-                }}
-              />
-            ))}
-          </div>
+        {/* Position indicator line */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
+        >
+          <div className="-translate-x-1/2 -top-[0.7px] absolute left-1/2 h-[8px] w-[3px] transform rounded-t-[0.5px] rounded-b-[0.5px] bg-neutral-700 dark:from-neutral-200 dark:to-neutral-600" />
+          {/* {Array.from({ length: 30 }).map((_, i) => (
+            <div
+              key={i}
+              className="-z-[1] bg-neutral-300 dark:bg-neutral-800"
+              style={{
+                transform: `rotate(${i * 12}deg) translateY(-12px)`,
+                position: "absolute",
+                top: "45%",
+                left: "45%",
+                transformOrigin: "center",
+                width: "2px",
+                height: "2px",
+                clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+              }}
+            />
+          ))} */}
         </div>
       </div>
     </div>
@@ -714,12 +714,12 @@ const Track = memo(function Track({
       <Icon className="h-4 w-4 text-neutral-800 dark:text-neutral-200" />
 
       {/* Mute Button */}
-      <div className="mt-2 rounded-full border-[1px] border-neutral-300/30 shadow-[0px_2px_3px_rgba(0,0,0,0.1)] dark:border-neutral-700 dark:text-neutral-300">
+      <div className="mt-2 rounded-full border-[1px] border-neutral-400 dark:border-neutral-700 dark:text-neutral-300">
         <button
           type="button"
           onClick={() => onMuteToggle(index)}
           className={cn(
-            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-200/50 bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-sm active:scale-94 dark:border-neutral-500/70 dark:from-neutral-600 dark:to-neutral-800/60",
+            "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-neutral-200 border-t-[0.5px] bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-[0px_3px_3px_rgba(0,0,0,0.2)] active:scale-94 dark:border-neutral-500/70 dark:from-neutral-600 dark:to-neutral-800/60",
           )}
         >
           <div className={cn("rounded-full p-0.5", isMuted && "bg-orange-500/10 text-orange-500")}>
@@ -808,26 +808,26 @@ const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying:
 
   return (
     <div className="relative rounded-full bg-gradient-to-b from-neutral-400/80 to-neutral-300 p-1 dark:from-neutral-700 dark:to-neutral-800">
-      <div className="rounded-full border-[0.5px] border-neutral-500">
+      <div className={cn("rounded-full border-[0.5px] border-neutral-500")}>
         <button
           type="button"
           onClick={handleClick}
           suppressHydrationWarning
           className={cn(
-            "group flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-neutral-400 p-0.5 transition",
+            "group flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-neutral-400/50 p-0.5 transition",
             isPlaying
               ? "scale-96 shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)] active:scale-93"
-              : "scale-100 shadow-[0_4px_6px_0px_rgba(0,0,0,0.4)] active:scale-94 active:shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)]",
+              : "scale-100 shadow-[0_4px_6px_0px_rgba(0,0,0,0.4)] active:scale-96 active:shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)]",
           )}
         >
           <div className="rounded-full border-[0.5px] border-neutral-300/80">
-            <div className="flex h-12 w-12 items-start justify-center overflow-hidden rounded-full border-neutral-300/50 bg-gradient-to-b from-neutral-500/70 to-neutral-200 pt-2">
+            <div className="flex h-12 w-12 items-start justify-center overflow-hidden rounded-full bg-gradient-to-b from-neutral-500/80 to-neutral-200 pt-2">
               <div
                 className={cn(
                   "h-2 w-1 rounded-full border-[0.2px] transition",
                   isPlaying
                     ? "border-transparent bg-orange-500 shadow shadow-orange-500/50"
-                    : "border-neutral-50/50 bg-neutral-700",
+                    : "border-neutral-50/50 bg-neutral-800",
                 )}
               />
             </div>
