@@ -625,7 +625,7 @@ const MasterKnob = memo(function MasterKnob({
       ref={knobRef}
       suppressHydrationWarning
       className={cn(
-        "relative z-[10] h-12 w-12 cursor-pointer rounded-full border border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_10px_12px_0px_rgba(0,0,0,0.7)] transition-all",
+        "relative z-[10] h-12 w-12 cursor-pointer rounded-full border-[1px] border-neutral-300 bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-[0_10px_12px_0px_rgba(0,0,0,0.6)] transition-all",
       )}
       style={{ touchAction: "none" }}
       onPointerDown={handlePointerDown}
@@ -637,27 +637,28 @@ const MasterKnob = memo(function MasterKnob({
       onTouchEnd={handleTouchEnd}
       onDoubleClick={handleDoubleClick}
     >
-      <div className="h-full w-full rounded-full border-[0.5px] border-neutral-200">
+      <div className="h-full w-full rounded-full border-neutral-100 border-t-[0.5px]">
         {/* <div className="absolute inset-0 rounded-full bg-gradient-to-b from-neutral-300 to-neutral-400" /> */}
         <div
           className="absolute inset-0 rounded-full"
           style={{ transform: `rotate(${rotationDegrees}deg)`, touchAction: "none" }}
         >
           {/* Position indicator dot */}
-          <div className="-translate-x-1/2 absolute top-1.5 left-1/2 z-10 h-1 w-1 transform rounded-full bg-neutral-700 shadow-sm" />
+          <div className="-translate-x-1/2 absolute top-1.5 left-1/2 z-10 h-1 w-1 transform rounded-full bg-gradient-to-b from-neutral-800 to-neutral-600 shadow-sm" />
           {Array.from({ length: 60 }).map((_, i) => (
             <div
               key={i}
-              className="-z-[1] bg-neutral-300"
+              className={cn("-z-[1]", i % 2 ? "bg-neutral-300/80" : "bg-neutral-300/50")}
               style={{
                 transform: `rotate(${i * 6}deg) translateY(-24px)`,
                 position: "absolute",
-                top: "22px",
-                left: "47%",
+                top: "21.95px",
+                left: "21.5px",
                 transformOrigin: "center",
                 width: "3px",
-                height: "2px",
-                clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+                height: "3px",
+                // boxShadow: "1px 2px 2px 0px rgba(0, 0, 0, 1)",
+                clipPath: "polygon(50% 0%, 100% 50%, 0% 50%)",
               }}
             />
           ))}
@@ -819,7 +820,7 @@ const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying:
               : "scale-100 shadow-[0_4px_6px_0px_rgba(0,0,0,0.4)] active:scale-96 active:shadow-[0_3px_5px_0px_rgba(0,0,0,0.3)]",
           )}
         >
-          <div className="rounded-full border-[0.5px] border-neutral-300/80">
+          <div className="rounded-full border-t-[0.5px] border-t-neutral-200 border-r-[0.5px] border-r-neutral-300 border-b-[0.5px] border-b-neutral-300 border-l-[0.5px] border-l-neutral-300">
             <div className="flex h-12 w-12 items-start justify-center overflow-hidden rounded-full bg-gradient-to-b from-neutral-500/80 to-neutral-200 pt-2">
               <div
                 className={cn(
@@ -840,7 +841,7 @@ const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying:
 const VolumeDisplay = memo(function VolumeDisplay({ volume }: { volume: number }) {
   return (
     <div className="rounded-sm shadow-sm">
-      <div className="relative inset-shadow-black inset-shadow-xs flex h-[20px] w-8 flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[10px] text-neutral-100">
+      <div className="relative inset-shadow-black inset-shadow-xs flex h-[18px] w-[30px] flex-row items-center justify-center rounded-sm border-[1px] border-neutral-200/80 bg-neutral-800/90 font-mono text-[8px] text-neutral-100">
         {volume}%
         <div className="absolute inset-0 rounded-sm bg-[linear-gradient(0deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px),linear-gradient(90deg,rgba(0,0,0,0.1)_0.5px,transparent_0.5px)] bg-[size:1px_1px]" />
       </div>
