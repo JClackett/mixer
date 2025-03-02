@@ -698,21 +698,23 @@ const Track = memo(function Track({
       ))}
 
       {/* Fader Track */}
-      <div className="relative mt-2 h-48 w-3 overflow-hidden rounded-full bg-gradient-to-b from-neutral-800/80 to-neutral-800/75 shadow-[inset_0px_2px_4px_rgba(0,0,0,1)]">
-        <Slider
-          value={[volume]}
-          onValueChange={(value) => onVolumeChange(value, index)}
-          orientation="vertical"
-          min={0}
-          max={100}
-          step={1}
-        />
+      <div className="mt-2 rounded-full border-neutral-100 border-b-[0.5px] bg-gradient-to-b from-neutral-400 to-neutral-300 p-0.5 shadow-[inset_0px_2px_4px_rgba(0,0,0,1)]">
+        <div className="relative h-48 w-3 rounded-full bg-gradient-to-b from-neutral-800/80 to-neutral-800/75 shadow-[inset_0px_2px_4px_rgba(0,0,0,1)]">
+          <Slider
+            value={[volume]}
+            onValueChange={(value) => onVolumeChange(value, index)}
+            orientation="vertical"
+            min={0}
+            max={100}
+            step={1}
+          />
+        </div>
       </div>
 
       <Icon className="h-4 w-4 text-neutral-800 dark:text-neutral-200" />
 
       {/* Mute Button */}
-      <div className="mt-2 rounded-full border-[1px] border-neutral-400/10 shadow-[0px_2px_3px_rgba(0,0,0,0.1)] dark:border-neutral-700 dark:text-neutral-300">
+      <div className="mt-2 rounded-full border-[1px] border-neutral-300/30 shadow-[0px_2px_3px_rgba(0,0,0,0.1)] dark:border-neutral-700 dark:text-neutral-300">
         <button
           type="button"
           onClick={() => onMuteToggle(index)}
@@ -720,10 +722,9 @@ const Track = memo(function Track({
             "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-[0.5px] border-neutral-200/50 bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-sm active:scale-94 dark:border-neutral-500/70 dark:from-neutral-600 dark:to-neutral-800/60",
           )}
         >
-          <VolumeOffIcon
-            size={12}
-            className={isMuted ? "rounded-full bg-orange-500/10 text-orange-500" : "text-neutral-700 dark:text-neutral-400"}
-          />
+          <div className={cn("rounded-full p-0.5", isMuted && "bg-orange-500/10 text-orange-500")}>
+            <VolumeOffIcon size={12} className={isMuted ? "text-orange-500" : "text-neutral-700 dark:text-neutral-400"} />
+          </div>
         </button>
       </div>
     </div>

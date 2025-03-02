@@ -19,9 +19,11 @@ const Slider = React.forwardRef<
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
       className={cn(
-        "block h-4 w-2.5 rounded-full border-[0.8px] border-neutral-200/60 bg-gradient-to-b from-neutral-400 to-neutral-200 shadow-[0px_2px_4px_rgba(0,0,0,1)] ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:pointer-events-none",
+        "relative block h-5 w-2 rounded-full ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:pointer-events-none",
       )}
-    />
+    >
+      <div className="-inset-x-[2px] absolute inset-y-0 z-10 h-5 rounded-full border-neutral-200/60 border-t-[0.8px] bg-gradient-to-b from-neutral-400 to-neutral-200 shadow-[0px_2px_4px_rgba(0,0,0,1)]" />
+    </SliderPrimitive.Thumb>
   </SliderPrimitive.Root>
 ))
 Slider.displayName = SliderPrimitive.Root.displayName
