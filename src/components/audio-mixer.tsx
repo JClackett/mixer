@@ -868,8 +868,6 @@ export function AudioMixer() {
     const iosDevice = isIOS()
 
     if (iosDevice) {
-      document.documentElement.classList.add("ios")
-
       // For iOS, we need to create and resume the audio context during a user interaction
       // This is handled in the PlayButton component
 
@@ -891,49 +889,44 @@ export function AudioMixer() {
       document.addEventListener("touchstart", initAudio, { once: true })
     }
 
-    return () => {
-      document.documentElement.classList.remove("ios")
-      // No need to remove the event listener in cleanup as we use { once: true }
-    }
+    // No cleanup needed as we use { once: true } for the event listener
   }, [])
 
   return (
-    <div className="relative mx-auto max-w-4xl px-4">
-      <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/90 blur-xl dark:bg-black/30" />
-      <div
-        suppressHydrationWarning
-        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-120 transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-400 p-8 shadow-[0_20px_25px_rgba(0,0,0,0.2),0_2px_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] dark:from-neutral-800 dark:to-neutral-900 dark:after:border-neutral-600 dark:after:bg-neutral-700 dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]"
-      >
-        <div className="absolute top-4 left-4 font-medium text-neutral-500 text-sm tracking-wider dark:text-neutral-400">
-          J3-C7
-        </div>
-
-        <DisplayPanel isPlaying={isPlaying} />
-
-        <div className="mt-12 flex gap-6">
-          {/* Track controls */}
-          {TRACKS.map((track, index) => (
-            <Track
-              key={track.label}
-              track={track}
-              index={index}
-              volume={volumes[index]}
-              isMuted={muted[index]}
-              eqSettings={eq[index]}
-              onVolumeChange={handleVolumeChange}
-              onEQChange={handleEQChange}
-              onMuteToggle={toggleMute}
-            />
-          ))}
-
-          {/* Play Button and Master Volume */}
-          <div className="flex flex-col items-center gap-4">
-            <PlayButton isPlaying={isPlaying} onClick={togglePlayback} />
-
-            {/* Master Volume Control */}
-            <div className="flex flex-col items-center gap-2">
-              <MasterKnob value={masterVolume} onChange={setMasterVolume} />
-              <VolumeDisplay volume={masterVolume} />
+    <div className="p-4">
+      <div className="relative mx-auto max-w-4xl">
+        <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/90 blur-xl dark:bg-black/30" />
+        <div
+          suppressHydrationWarning
+          className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-120 transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-400 p-8 shadow-[0_20px_25px_rgba(0,0,0,0.2),0_2px_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] dark:from-neutral-800 dark:to-neutral-900 dark:after:border-neutral-600 dark:after:bg-neutral-700 dark:before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.1),inset_0_-2px_6px_rgba(0,0,0,0.2)]"
+        >
+          <div className="absolute top-4 left-4 font-medium text-neutral-500 text-sm tracking-wider dark:text-neutral-400">
+            J3-C7
+          </div>
+          <DisplayPanel isPlaying={isPlaying} />
+          <div className="mt-12 flex gap-6">
+            {/* Track controls */}
+            {TRACKS.map((track, index) => (
+              <Track
+                key={track.label}
+                track={track}
+                index={index}
+                volume={volumes[index]}
+                isMuted={muted[index]}
+                eqSettings={eq[index]}
+                onVolumeChange={handleVolumeChange}
+                onEQChange={handleEQChange}
+                onMuteToggle={toggleMute}
+              />
+            ))}
+            {/* Play Button and Master Volume */}
+            <div className="flex flex-col items-center gap-4">
+              <PlayButton isPlaying={isPlaying} onClick={togglePlayback} />
+              {/* Master Volume Control */}
+              <div className="flex flex-col items-center gap-2">
+                <MasterKnob value={masterVolume} onChange={setMasterVolume} />
+                <VolumeDisplay volume={masterVolume} />
+              </div>
             </div>
           </div>
         </div>
