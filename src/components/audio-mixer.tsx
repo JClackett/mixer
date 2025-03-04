@@ -406,8 +406,9 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const isDraggingRef = useRef(false)
   const [isActive, setIsActive] = useState(false)
   const rotationDegrees = useMemo(() => (initialValue - 50) * 2.7, [initialValue])
-  // Track the last value that triggered a vibration
-  const lastVibratedValueRef = useRef<number>(Math.floor(initialValue / 10) * 10)
+
+  // Track the previous value to detect 10% crossings
+  const prevValueRef = useRef<number>(initialValue)
 
   // Add a sensitivity factor that can be adjusted for mobile
   const sensitivityFactor = 2.5 // Lower value = less sensitive
@@ -420,8 +421,8 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       startYRef.current = e.clientY
       startValueRef.current = initialValue
 
-      // Initialize the last vibrated value to the current 10% increment
-      lastVibratedValueRef.current = Math.floor(initialValue / 10) * 10
+      // Initialize the previous value
+      prevValueRef.current = initialValue
 
       // Capture pointer to ensure smooth dragging
       knobRef.current?.setPointerCapture(e.pointerId)
@@ -448,16 +449,21 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
       const roundedValue = Math.round(newValue)
 
-      // Check if we've crossed a 10% threshold
-      const currentTenth = Math.floor(roundedValue / 10) * 10
-      if (currentTenth !== lastVibratedValueRef.current) {
-        // Vibrate when crossing a 10% threshold
+      // Get the 10% markers for previous and current values
+      const prevTenth = Math.floor(prevValueRef.current / 10)
+      const currentTenth = Math.floor(roundedValue / 10)
+
+      // Only vibrate when crossing a 10% boundary
+      if (prevTenth !== currentTenth) {
         if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(30) // Slightly stronger vibration for the 10% increment
+          navigator.vibrate(30) // Vibration for 10% increment
         }
-        lastVibratedValueRef.current = currentTenth
       }
 
+      // Update the previous value reference
+      prevValueRef.current = roundedValue
+
+      // Call the onChange handler
       onChange(roundedValue)
     },
     [onChange],
@@ -475,8 +481,8 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
     // Reset to 50% on double click
     onChange(50)
 
-    // Update the last vibrated value to 50 (5 * 10)
-    lastVibratedValueRef.current = 50
+    // Update the previous value reference
+    prevValueRef.current = 50
 
     // Trigger vibration if supported by the browser
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -494,8 +500,8 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
         startYRef.current = e.touches[0].clientY
         startValueRef.current = initialValue
 
-        // Initialize the last vibrated value to the current 10% increment
-        lastVibratedValueRef.current = Math.floor(initialValue / 10) * 10
+        // Initialize the previous value
+        prevValueRef.current = initialValue
 
         // Ensure audio context is resumed on iOS
         if (window.AudioContext && isIOS()) {
@@ -520,15 +526,19 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
       const roundedValue = Math.round(newValue)
 
-      // Check if we've crossed a 10% threshold
-      const currentTenth = Math.floor(roundedValue / 10) * 10
-      if (currentTenth !== lastVibratedValueRef.current) {
-        // Vibrate when crossing a 10% threshold
+      // Get the 10% markers for previous and current values
+      const prevTenth = Math.floor(prevValueRef.current / 10)
+      const currentTenth = Math.floor(roundedValue / 10)
+
+      // Only vibrate when crossing a 10% boundary
+      if (prevTenth !== currentTenth) {
         if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(30) // Slightly stronger vibration for the 10% increment
+          navigator.vibrate(30) // Vibration for 10% increment
         }
-        lastVibratedValueRef.current = currentTenth
       }
+
+      // Update the previous value reference
+      prevValueRef.current = roundedValue
 
       onChange(roundedValue)
       e.preventDefault() // Prevent scrolling while adjusting
@@ -719,20 +729,29 @@ const VibrationSlider = memo(function VibrationSlider({
   max?: number
   step?: number
 }) {
-  // Track the last value that triggered a vibration
-  const lastVibratedValueRef = useRef<number>(Math.floor(value[0] / 10) * 10)
+  // Track the previous value to detect 10% crossings
+  const prevValueRef = useRef<number>(value[0])
+
+  // Update prevValueRef when value prop changes
+  useEffect(() => {
+    prevValueRef.current = value[0]
+  }, [value])
 
   const handleValueChange = useCallback(
     (newValue: number[]) => {
-      // Check if we've crossed a 10% threshold
-      const currentTenth = Math.floor(newValue[0] / 10) * 10
-      if (currentTenth !== lastVibratedValueRef.current) {
-        // Vibrate when crossing a 10% threshold
+      // Get the 10% markers for previous and current values
+      const prevTenth = Math.floor(prevValueRef.current / 10)
+      const currentTenth = Math.floor(newValue[0] / 10)
+
+      // Only vibrate when crossing a 10% boundary
+      if (prevTenth !== currentTenth) {
         if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(30) // Slightly stronger vibration for the 10% increment
+          navigator.vibrate(30) // Vibration for 10% increment
         }
-        lastVibratedValueRef.current = currentTenth
       }
+
+      // Update the previous value reference
+      prevValueRef.current = newValue[0]
 
       onValueChange(newValue)
     },
