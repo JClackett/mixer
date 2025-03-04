@@ -968,37 +968,109 @@ export function AudioMixer() {
     togglePlayback,
   } = useAudioEngine()
 
-  // Add iOS detection and audio context initialization on component mount
+  // Disable scrolling and text selection
   useEffect(() => {
-    const iosDevice = isIOS()
+    // Save original styles
+    const originalOverflow = document.body.style.overflow
+    const originalTouchAction = document.body.style.touchAction
+    const originalUserSelect = document.body.style.userSelect
 
-    if (iosDevice) {
-      // For iOS, we need to create and resume the audio context during a user interaction
-      // This is handled in the PlayButton component
+    // Apply restrictive styles
+    document.body.style.overflow = "hidden"
+    document.body.style.touchAction = "none"
+    document.body.style.userSelect = "none"
 
-      // Add a one-time touch event listener to the document to initialize audio
-      const initAudio = () => {
-        // This empty function just ensures iOS will allow audio later
-        const silentAudio = new Audio(
-          "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADmADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAYAAAAAAAAAAwCVzA1/AAAAAAAAAAAAAAAA",
-        )
-        silentAudio.volume = 0.001
-        silentAudio.play().catch(() => {
-          // Ignore errors
-        })
+    // Add a class to handle vendor prefixes via CSS
+    document.body.classList.add("no-select")
 
-        // Remove the event listener after first touch
-        document.removeEventListener("touchstart", initAudio)
-      }
-
-      document.addEventListener("touchstart", initAudio, { once: true })
+    // Add event listeners to prevent default behaviors
+    const preventDefault = (e: Event) => {
+      e.preventDefault()
     }
 
-    // No cleanup needed as we use { once: true } for the event listener
+    // More aggressive approach to prevent scrolling on mobile
+    const preventTouchMove = (e: TouchEvent) => {
+      // Allow scrolling only on elements that should be scrollable
+      const target = e.target as HTMLElement
+      const isScrollable = target.classList.contains("scrollable") || target.closest(".scrollable")
+
+      if (!isScrollable) {
+        e.preventDefault()
+      }
+    }
+
+    document.addEventListener("touchmove", preventTouchMove, { passive: false })
+    document.addEventListener("wheel", preventDefault, { passive: false })
+    document.addEventListener("selectstart", preventDefault)
+
+    // Prevent pull-to-refresh on mobile
+    document.body.style.overscrollBehavior = "none"
+
+    // Cleanup function
+    return () => {
+      // Restore original styles
+      document.body.style.overflow = originalOverflow
+      document.body.style.touchAction = originalTouchAction
+      document.body.style.userSelect = originalUserSelect
+      document.body.style.overscrollBehavior = ""
+
+      // Remove the class
+      document.body.classList.remove("no-select")
+
+      // Remove event listeners
+      document.removeEventListener("touchmove", preventTouchMove)
+      document.removeEventListener("wheel", preventDefault)
+      document.removeEventListener("selectstart", preventDefault)
+    }
+  }, [])
+
+  // Add a style tag to handle vendor prefixes and disable scrolling/selection
+  useEffect(() => {
+    // Create a style element
+    const styleElement = document.createElement("style")
+    styleElement.innerHTML = `
+      .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      
+      html, body {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+      
+      /* Make all elements within the mixer non-selectable */
+      .audio-mixer-container * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+      }
+    `
+
+    // Add the style element to the head
+    document.head.appendChild(styleElement)
+
+    // Cleanup function
+    return () => {
+      document.head.removeChild(styleElement)
+    }
   }, [])
 
   return (
-    <div className="relative p-4">
+    <div
+      className="audio-mixer-container relative select-none p-4"
+      onTouchMove={(e) => e.preventDefault()}
+      onTouchStart={(e) => e.target === e.currentTarget && e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+    >
       <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/30 blur-xl" />
       <div
         suppressHydrationWarning
