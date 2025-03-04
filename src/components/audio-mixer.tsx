@@ -420,10 +420,8 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       startYRef.current = e.clientY
       startValueRef.current = initialValue
 
-      // Trigger vibration if supported by the browser
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(20) // Short vibration on start
-      }
+      // Initialize the last vibrated value to the current 10% increment
+      lastVibratedValueRef.current = Math.floor(initialValue / 10) * 10
 
       // Capture pointer to ensure smooth dragging
       knobRef.current?.setPointerCapture(e.pointerId)
@@ -470,11 +468,6 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       isDraggingRef.current = false
       setIsActive(false)
       knobRef.current?.releasePointerCapture(e.pointerId)
-
-      // Trigger vibration if supported by the browser
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(20) // Short vibration on end
-      }
     }
   }, [])
 
@@ -482,9 +475,12 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
     // Reset to 50% on double click
     onChange(50)
 
+    // Update the last vibrated value to 50 (5 * 10)
+    lastVibratedValueRef.current = 50
+
     // Trigger vibration if supported by the browser
     if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate([20, 30, 20]) // Pattern vibration for reset
+      navigator.vibrate([40, 60, 40]) // Stronger pattern vibration for reset
     }
   }, [onChange])
 
@@ -498,10 +494,8 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
         startYRef.current = e.touches[0].clientY
         startValueRef.current = initialValue
 
-        // Trigger vibration if supported by the browser
-        if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(20) // Short vibration on start
-        }
+        // Initialize the last vibrated value to the current 10% increment
+        lastVibratedValueRef.current = Math.floor(initialValue / 10) * 10
 
         // Ensure audio context is resumed on iOS
         if (window.AudioContext && isIOS()) {
@@ -545,11 +539,6 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const handleTouchEnd = useCallback(() => {
     isDraggingRef.current = false
     setIsActive(false)
-
-    // Trigger vibration if supported by the browser
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate(20) // Short vibration on end
-    }
   }, [])
 
   return {
