@@ -418,6 +418,11 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       startYRef.current = e.clientY
       startValueRef.current = initialValue
 
+      // Trigger vibration if supported by the browser
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(20) // Short vibration on start
+      }
+
       // Capture pointer to ensure smooth dragging
       knobRef.current?.setPointerCapture(e.pointerId)
 
@@ -452,12 +457,22 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       isDraggingRef.current = false
       setIsActive(false)
       knobRef.current?.releasePointerCapture(e.pointerId)
+
+      // Trigger vibration if supported by the browser
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(20) // Short vibration on end
+      }
     }
   }, [])
 
   const handleDoubleClick = useCallback(() => {
     // Reset to 50% on double click
     onChange(50)
+
+    // Trigger vibration if supported by the browser
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([20, 30, 20]) // Pattern vibration for reset
+    }
   }, [onChange])
 
   // Add touch-specific handlers for better mobile experience
@@ -469,6 +484,11 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
         setIsActive(true)
         startYRef.current = e.touches[0].clientY
         startValueRef.current = initialValue
+
+        // Trigger vibration if supported by the browser
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(20) // Short vibration on start
+        }
 
         // Ensure audio context is resumed on iOS
         if (window.AudioContext && isIOS()) {
@@ -501,6 +521,11 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const handleTouchEnd = useCallback(() => {
     isDraggingRef.current = false
     setIsActive(false)
+
+    // Trigger vibration if supported by the browser
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(20) // Short vibration on end
+    }
   }, [])
 
   return {
@@ -717,7 +742,13 @@ const Track = memo(function Track({
       <div className="mt-2 rounded-full border-[1px] border-neutral-400">
         <button
           type="button"
-          onClick={() => onMuteToggle(index)}
+          onClick={() => {
+            // Trigger vibration if supported by the browser
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+              navigator.vibrate(50) // 50ms vibration
+            }
+            onMuteToggle(index)
+          }}
           className={cn(
             "z-[100] flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-full border-neutral-200 border-t-[0.5px] bg-gradient-to-b from-neutral-400/80 to-neutral-300 shadow-[0px_3px_3px_rgba(0,0,0,0.2)] active:scale-94",
           )}
@@ -785,6 +816,11 @@ const DisplayPanel = memo(function DisplayPanel({ isPlaying }: { isPlaying: bool
 const PlayButton = memo(function PlayButton({ isPlaying, onClick }: { isPlaying: boolean; onClick: () => void }) {
   // Handle click with iOS audio context initialization
   const handleClick = useCallback(() => {
+    // Trigger vibration if supported by the browser
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(50) // 50ms vibration
+    }
+
     // iOS requires audio context to be created or resumed during a user interaction
     if (isIOS() && window.AudioContext) {
       // Try to resume any existing audio context
@@ -876,7 +912,7 @@ export function AudioMixer() {
       const initAudio = () => {
         // This empty function just ensures iOS will allow audio later
         const silentAudio = new Audio(
-          "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADmADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAYAAAAAAAAAAwCVzA1/AAAAAAAAAAAAAAAA",
+          "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADmADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAYAAAAAAAAAAwCVzA1/AAAAAAAAAAAAAAAA",
         )
         silentAudio.volume = 0.001
         silentAudio.play().catch(() => {
