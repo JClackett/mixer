@@ -407,9 +407,6 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const [isActive, setIsActive] = useState(false)
   const rotationDegrees = useMemo(() => (initialValue - 50) * 2.7, [initialValue])
 
-  // Track the previous value to detect 10% crossings
-  const prevValueRef = useRef<number>(initialValue)
-
   // Add a sensitivity factor that can be adjusted for mobile
   const sensitivityFactor = 2.5 // Lower value = less sensitive
 
@@ -421,8 +418,10 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       startYRef.current = e.clientY
       startValueRef.current = initialValue
 
-      // Initialize the previous value
-      prevValueRef.current = initialValue
+      // Trigger vibration if supported by the browser
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(20) // Short vibration on start
+      }
 
       // Capture pointer to ensure smooth dragging
       knobRef.current?.setPointerCapture(e.pointerId)
@@ -449,20 +448,6 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
       const roundedValue = Math.round(newValue)
 
-      // Get the 10% markers for previous and current values
-      const prevTenth = Math.floor(prevValueRef.current / 10)
-      const currentTenth = Math.floor(roundedValue / 10)
-
-      // Only vibrate when crossing a 10% boundary
-      if (prevTenth !== currentTenth) {
-        if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(30) // Vibration for 10% increment
-        }
-      }
-
-      // Update the previous value reference
-      prevValueRef.current = roundedValue
-
       // Call the onChange handler
       onChange(roundedValue)
     },
@@ -474,15 +459,17 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       isDraggingRef.current = false
       setIsActive(false)
       knobRef.current?.releasePointerCapture(e.pointerId)
+
+      // Trigger vibration if supported by the browser
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(20) // Short vibration on end
+      }
     }
   }, [])
 
   const handleDoubleClick = useCallback(() => {
     // Reset to 50% on double click
     onChange(50)
-
-    // Update the previous value reference
-    prevValueRef.current = 50
 
     // Trigger vibration if supported by the browser
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -500,8 +487,10 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
         startYRef.current = e.touches[0].clientY
         startValueRef.current = initialValue
 
-        // Initialize the previous value
-        prevValueRef.current = initialValue
+        // Trigger vibration if supported by the browser
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(20) // Short vibration on start
+        }
 
         // Ensure audio context is resumed on iOS
         if (window.AudioContext && isIOS()) {
@@ -526,20 +515,6 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
       const roundedValue = Math.round(newValue)
 
-      // Get the 10% markers for previous and current values
-      const prevTenth = Math.floor(prevValueRef.current / 10)
-      const currentTenth = Math.floor(roundedValue / 10)
-
-      // Only vibrate when crossing a 10% boundary
-      if (prevTenth !== currentTenth) {
-        if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(30) // Vibration for 10% increment
-        }
-      }
-
-      // Update the previous value reference
-      prevValueRef.current = roundedValue
-
       onChange(roundedValue)
       e.preventDefault() // Prevent scrolling while adjusting
     },
@@ -549,6 +524,11 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const handleTouchEnd = useCallback(() => {
     isDraggingRef.current = false
     setIsActive(false)
+
+    // Trigger vibration if supported by the browser
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(20) // Short vibration on end
+    }
   }, [])
 
   return {
@@ -729,34 +709,55 @@ const VibrationSlider = memo(function VibrationSlider({
   max?: number
   step?: number
 }) {
-  // Track the previous value to detect 10% crossings
-  const prevValueRef = useRef<number>(value[0])
+  // Track if we're currently dragging
+  const isDraggingRef = useRef(false)
 
-  // Update prevValueRef when value prop changes
-  useEffect(() => {
-    prevValueRef.current = value[0]
-  }, [value])
+  // Handle the start of interaction
+  const handleInteractionStart = useCallback(() => {
+    isDraggingRef.current = true
+
+    // Vibrate on start of interaction
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(20) // Short vibration on start
+    }
+  }, [])
+
+  // Handle the end of interaction
+  const handleInteractionEnd = useCallback(() => {
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false
+
+      // Vibrate on end of interaction
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(20) // Short vibration on end
+      }
+    }
+  }, [])
 
   const handleValueChange = useCallback(
     (newValue: number[]) => {
-      // Get the 10% markers for previous and current values
-      const prevTenth = Math.floor(prevValueRef.current / 10)
-      const currentTenth = Math.floor(newValue[0] / 10)
-
-      // Only vibrate when crossing a 10% boundary
-      if (prevTenth !== currentTenth) {
-        if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(30) // Vibration for 10% increment
-        }
-      }
-
-      // Update the previous value reference
-      prevValueRef.current = newValue[0]
-
       onValueChange(newValue)
     },
     [onValueChange],
   )
+
+  // Add event listeners for pointer/touch events
+  useEffect(() => {
+    const handlePointerDown = () => handleInteractionStart()
+    const handlePointerUp = () => handleInteractionEnd()
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    document.addEventListener("pointerup", handlePointerUp)
+    document.addEventListener("touchstart", handlePointerDown)
+    document.addEventListener("touchend", handlePointerUp)
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown)
+      document.removeEventListener("pointerup", handlePointerUp)
+      document.removeEventListener("touchstart", handlePointerDown)
+      document.removeEventListener("touchend", handlePointerUp)
+    }
+  }, [handleInteractionStart, handleInteractionEnd])
 
   return <Slider value={value} onValueChange={handleValueChange} {...props} />
 })
