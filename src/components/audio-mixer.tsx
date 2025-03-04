@@ -983,7 +983,7 @@ export function AudioMixer() {
       <div className="-inset-4 absolute translate-y-4 rotate-x-12 scale-[0.97] transform rounded-2xl bg-black/30 blur-xl" />
       <div
         suppressHydrationWarning
-        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-120 transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-400 p-8 shadow-[0_20px_25px_rgba(0,0,0,0.2),0_2px_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-['']"
+        className="after:-inset-[2px] after:-bottom-[6px] after:-z-10 rotateX(10deg) rotateY(10deg) relative scale-100 transform rounded-lg bg-gradient-to-b from-neutral-100 to-neutral-400 p-8 shadow-[0_20px_25px_rgba(0,0,0,0.2),0_2px_0_1px_rgba(0,0,0,0.1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-lg before:shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(0,0,0,0.1)] before:content-[''] after:pointer-events-none after:absolute after:rounded-xl after:border after:border-neutral-400 after:bg-neutral-400/50 after:content-[''] md:scale-120"
       >
         <div className="absolute top-4 left-4 font-medium text-neutral-500 text-sm tracking-wider">J3-C7</div>
         <DisplayPanel isPlaying={isPlaying} />
