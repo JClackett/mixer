@@ -406,6 +406,8 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
   const isDraggingRef = useRef(false)
   const [isActive, setIsActive] = useState(false)
   const rotationDegrees = useMemo(() => (initialValue - 50) * 2.7, [initialValue])
+  // Track the last value that triggered a vibration
+  const lastVibratedValueRef = useRef<number>(Math.floor(initialValue / 10) * 10)
 
   // Add a sensitivity factor that can be adjusted for mobile
   const sensitivityFactor = 2.5 // Lower value = less sensitive
@@ -446,8 +448,19 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
 
       // Use a non-linear curve for more precise control
       const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
+      const roundedValue = Math.round(newValue)
 
-      onChange(Math.round(newValue))
+      // Check if we've crossed a 10% threshold
+      const currentTenth = Math.floor(roundedValue / 10) * 10
+      if (currentTenth !== lastVibratedValueRef.current) {
+        // Vibrate when crossing a 10% threshold
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(30) // Slightly stronger vibration for the 10% increment
+        }
+        lastVibratedValueRef.current = currentTenth
+      }
+
+      onChange(roundedValue)
     },
     [onChange],
   )
@@ -511,8 +524,19 @@ function useKnob(initialValue: number, onChange: (value: number) => void) {
       const adjustedDelta = deltaY / touchSensitivity
 
       const newValue = Math.max(0, Math.min(100, startValueRef.current + adjustedDelta))
+      const roundedValue = Math.round(newValue)
 
-      onChange(Math.round(newValue))
+      // Check if we've crossed a 10% threshold
+      const currentTenth = Math.floor(roundedValue / 10) * 10
+      if (currentTenth !== lastVibratedValueRef.current) {
+        // Vibrate when crossing a 10% threshold
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(30) // Slightly stronger vibration for the 10% increment
+        }
+        lastVibratedValueRef.current = currentTenth
+      }
+
+      onChange(roundedValue)
       e.preventDefault() // Prevent scrolling while adjusting
     },
     [onChange],
@@ -693,6 +717,42 @@ const MasterKnob = memo(function MasterKnob({
   )
 })
 
+// VibrationSlider component to add haptic feedback
+const VibrationSlider = memo(function VibrationSlider({
+  value,
+  onValueChange,
+  ...props
+}: {
+  value: number[]
+  onValueChange: (value: number[]) => void
+  orientation?: "horizontal" | "vertical"
+  min?: number
+  max?: number
+  step?: number
+}) {
+  // Track the last value that triggered a vibration
+  const lastVibratedValueRef = useRef<number>(Math.floor(value[0] / 10) * 10)
+
+  const handleValueChange = useCallback(
+    (newValue: number[]) => {
+      // Check if we've crossed a 10% threshold
+      const currentTenth = Math.floor(newValue[0] / 10) * 10
+      if (currentTenth !== lastVibratedValueRef.current) {
+        // Vibrate when crossing a 10% threshold
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(30) // Slightly stronger vibration for the 10% increment
+        }
+        lastVibratedValueRef.current = currentTenth
+      }
+
+      onValueChange(newValue)
+    },
+    [onValueChange],
+  )
+
+  return <Slider value={value} onValueChange={handleValueChange} {...props} />
+})
+
 // Track component
 const Track = memo(function Track({
   track,
@@ -725,7 +785,7 @@ const Track = memo(function Track({
       {/* Fader Track */}
       <div className="mt-2 rounded-full border-neutral-100 border-b-[0.5px] bg-gradient-to-b from-neutral-400 to-neutral-300 p-0.5 shadow-[inset_0px_2px_4px_rgba(0,0,0,1)]">
         <div className="relative h-48 w-3 rounded-full bg-gradient-to-b from-neutral-800/80 to-neutral-800/75 shadow-[inset_0px_2px_4px_rgba(0,0,0,1)]">
-          <Slider
+          <VibrationSlider
             value={[volume]}
             onValueChange={(value) => onVolumeChange(value, index)}
             orientation="vertical"
